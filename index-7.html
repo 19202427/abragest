@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+  <meta name="theme-color" content="#0f172a"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-title" content="ObraGest"/>
+  <title>🏗 ObraGest</title>
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500;700&display=swap');
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{background:#0f172a;font-family:'DM Sans',sans-serif;}
+    #root{display:flex;min-height:100vh;background:#0f172a;position:relative;}
+    .sidebar{width:190px;background:#111827;border-right:1px solid #1e293b;padding:14px 10px;flex-shrink:0;display:flex;flex-direction:column;}
+    .logo{color:#f59e0b;font-family:'Syne',sans-serif;font-size:15px;font-weight:800;padding-left:6px;margin-bottom:3px;}
+    .logo-sub{color:#475569;font-size:10px;padding-left:6px;margin-bottom:16px;}
+    .nav-btn{width:100%;background:transparent;border:none;border-radius:8px;padding:9px 12px;display:flex;align-items:center;gap:8px;color:#64748b;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;text-align:left;border-left:3px solid transparent;transition:all 0.15s;margin-bottom:2px;}
+    .nav-btn.active{background:#1e3a5f;color:#f59e0b;border-left:3px solid #f59e0b;font-weight:700;}
+    .main{flex:1;padding:22px 24px;overflow-y:auto;background:#0f172a;}
+    .card{background:#1a2236;border:1px solid #2a3a55;border-radius:12px;padding:16px 18px;}
+    .grid-1{display:grid;gap:10px;}
+    .badge{display:inline-block;border-radius:5px;padding:2px 8px;font-size:11px;font-weight:700;}
+    .row-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+    .page-title{color:#e2e8f0;font-family:'Syne',sans-serif;font-size:20px;font-weight:700;}
+    .btn{border:none;border-radius:7px;padding:7px 14px;font-weight:700;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity .15s;}
+    .btn:hover{opacity:.82;}
+    .btn-primary{background:#f59e0b;color:#0f172a;}
+    .btn-ghost{background:#2a3a55;color:#e2e8f0;}
+    .btn-danger{background:#ef444420;color:#ef4444;border:1px solid #ef444430;}
+    .btn-edit{background:#6366f120;color:#818cf8;border:1px solid #6366f130;}
+    .btn-tol{background:#f59e0b20;color:#f59e0b;border:1px solid #f59e0b40;}
+    .btn-green{background:#22c55e20;color:#22c55e;border:1px solid #22c55e40;}
+    .btn-sm{padding:5px 10px;font-size:11px;}
+    .pt{background:#0f172a;border-radius:6px;height:7px;overflow:hidden;}
+    .pb{height:100%;border-radius:6px;transition:width .3s;}
+    .field-label{color:#94a3b8;font-size:12px;display:block;margin-bottom:4px;}
+    input[type=text],input[type=number],input[type=date],select{width:100%;background:#0f172a;border:1px solid #2a3a55;border-radius:7px;padding:7px 10px;color:#e2e8f0;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box;margin-bottom:10px;}
+    .ov{position:fixed;inset:0;background:#000c;display:flex;align-items:center;justify-content:center;z-index:200;}
+    .mbox{background:#1a2236;border:1px solid #2a3a55;border-radius:14px;padding:24px;width:92%;max-width:430px;max-height:90vh;overflow-y:auto;}
+    .mhdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+    .mtitle{color:#e2e8f0;font-family:'Syne',sans-serif;font-size:16px;font-weight:700;}
+    .xbtn{background:none;border:none;color:#64748b;font-size:19px;cursor:pointer;}
+    .chip{display:inline-flex;align-items:center;gap:4px;background:#0f172a;border:1px solid #2a3a55;border-radius:6px;padding:3px 8px;font-size:11px;color:#94a3b8;}
+    .tol-tag{display:inline-flex;align-items:center;gap:3px;background:#f59e0b18;border:1px solid #f59e0b33;border-radius:5px;padding:2px 7px;font-size:11px;color:#f59e0b;font-weight:600;}
+    .ssel{background:#0f172a;border:1px solid #2a3a55;border-radius:6px;padding:3px 7px;color:#e2e8f0;font-size:12px;cursor:pointer;width:auto;margin-bottom:0;}
+    .ssel-obra{background:#0f172a;border:2px solid #2a3a55;border-radius:8px;padding:7px 14px;color:#e2e8f0;font-size:13px;font-weight:700;cursor:pointer;width:auto;margin-bottom:0;font-family:'DM Sans',sans-serif;}
+    .gasto-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #1e293b;}
+    .cat-row{padding:13px 15px;cursor:pointer;display:flex;align-items:center;gap:11px;}
+    .sec{color:#64748b;font-size:11px;font-weight:600;letter-spacing:.4px;margin-bottom:8px;}
+    .avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;}
+    .sync-tag{display:inline-flex;align-items:center;gap:4px;background:#22c55e15;border:1px solid #22c55e33;border-radius:5px;padding:2px 8px;font-size:10px;color:#22c55e;font-weight:600;}
+    .meta-card{background:#1a2236;border:2px solid #f59e0b44;border-radius:14px;padding:18px 20px;margin-bottom:14px;}
+    .pt-fat{background:#0f172a;border-radius:8px;height:14px;overflow:hidden;margin:10px 0 6px;}
+    .pct-pill{display:inline-flex;background:#6366f118;border:1px solid #6366f133;border-radius:20px;padding:1px 8px;font-size:11px;color:#818cf8;font-weight:700;}
+    .prev-edit{background:#0f172a;border:1px solid #6366f144;border-radius:8px;padding:6px 10px;display:flex;align-items:center;gap:6px;}
+    .prev-input{background:transparent;border:none;color:#a5b4fc;font-size:13px;font-weight:700;outline:none;width:80px;padding:0;margin:0;}
+    .pct-input{background:transparent;border:none;color:#f59e0b;font-size:13px;font-weight:700;outline:none;width:45px;padding:0;margin:0;}
+    .info-box{background:#6366f110;border:1px solid #6366f130;border-radius:8px;padding:9px 11px;font-size:12px;color:#94a3b8;margin-bottom:12px;}
+    .warn-box{background:#f59e0b10;border:1px solid #f59e0b30;border-radius:8px;padding:9px 11px;font-size:12px;color:#94a3b8;margin-bottom:12px;}
+    .socio-card{background:#1a2236;border:1px solid #2a3a55;border-radius:12px;overflow:hidden;margin-bottom:10px;}
+    .lanc-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #1e2940;}
+    .pag-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #1e293b;}
+    .obra-card{background:linear-gradient(135deg,#1a2236 60%,#1e2a42);border:2px solid #6366f144;border-radius:16px;padding:20px 22px;margin-bottom:18px;}
+    .obra-pt{background:#0f172a;border-radius:20px;height:18px;overflow:hidden;margin:12px 0 8px;position:relative;}
+    .obra-pb{height:100%;border-radius:20px;transition:width .4s;}
+    .obra-hoje-marker{position:absolute;top:0;height:100%;width:2px;background:#fff8;border-radius:2px;}
+    .divisor{border:none;border-top:2px dashed #2a3a55;margin:18px 0 16px;}
+    .tab-pill{border:none;border-radius:8px;padding:7px 14px;font-weight:700;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+    .tab-pill.on{background:#1e3a5f;color:#f59e0b;}
+    .tab-pill.off{background:transparent;color:#64748b;}
+    .cloud-tag{display:inline-flex;align-items:center;gap:4px;background:#22c55e15;border:1px solid #22c55e33;border-radius:5px;padding:2px 8px;font-size:10px;color:#22c55e;font-weight:600;}
+    .loading-screen{position:fixed;inset:0;background:#0f172a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:999;}
+    .loading-bar{width:160px;height:4px;background:#1e293b;border-radius:4px;overflow:hidden;}
+    .loading-fill{height:100%;background:#f59e0b;border-radius:4px;animation:loading 1.2s ease-in-out infinite;}
+    @keyframes loading{0%{width:0;margin-left:0}50%{width:100%;margin-left:0}100%{width:0;margin-left:100%}}
+    @keyframes fadein{from{opacity:0}to{opacity:1}}
+    ::-webkit-scrollbar{width:5px;} ::-webkit-scrollbar-track{background:#0f172a;} ::-webkit-scrollbar-thumb{background:#2a3a55;border-radius:10px;}
+    @media(max-width:640px){.sidebar{display:none!important;}.main{padding:14px 14px 80px!important;}.mobile-nav{display:flex!important;}}
+    .mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:#111827;border-top:1px solid #1e293b;z-index:100;justify-content:space-around;padding:6px 0;}
+    .mobile-nav-btn{background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 6px;cursor:pointer;color:#64748b;min-width:44px;}
+    .mobile-nav-btn.active{color:#f59e0b;}
+  </style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-screen" id="loadingScreen">
+  <div style="color:#f59e0b;font-family:'Syne',sans-serif;font-size:28px;font-weight:800;">🏗 ObraGest</div>
+  <div style="color:#94a3b8;font-size:14px;">Carregando dados da nuvem...</div>
+  <div class="loading-bar"><div class="loading-fill"></div></div>
+</div>
+
+<div id="root" style="display:none;">
+  <div class="sidebar">
+    <div class="logo">🏗 ObraGest</div>
+    <div class="logo-sub">Sistema de Gestão</div>
+    <div id="nav"></div>
+    <div style="margin-top:auto;padding-top:16px;border-top:1px solid #1e293b;">
+      <div style="display:flex;align-items:center;gap:6px;padding-left:6px;">
+        <div id="connDot" style="width:6px;height:6px;border-radius:50%;background:#22c55e;"></div>
+        <span style="color:#475569;font-size:10px;" id="connTxt">Conectado à nuvem</span>
+      </div>
+    </div>
+  </div>
+  <div class="main" id="main"></div>
+  <div class="mobile-nav" id="mobileNav"></div>
+  <div class="ov" id="modal" style="display:none;"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// SUPABASE — conexão com banco de dados na nuvem
+// ═══════════════════════════════════════════════════
+const SUPA_URL = 'https://ujgijpkwetyvngsxblvx.supabase.co';
+const SUPA_KEY = 'sb_publishable_HuDEGqC0DgdW_fexMCmq5Q_t4lFZ4o7';
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+// ═══════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════
+const SC={"Ativo":"#22c55e","Inativo":"#ef4444","Em andamento":"#f59e0b","Pendente":"#6366f1","Concluída":"#22c55e","Alta":"#ef4444","Média":"#f59e0b","Baixa":"#22c55e","Estoque Baixo":"#ef4444"};
+const CORES=["#6366f1","#38bdf8","#a78bfa","#34d399","#fb923c","#f472b6"];
+const CORES_EMP=["#f59e0b","#38bdf8","#a78bfa","#34d399","#fb923c","#f472b6"];
+const R=v=>Number(v||0).toLocaleString("pt-BR");
+const FD=d=>{if(!d)return"—";return new Date(d+"T12:00:00").toLocaleDateString("pt-BR");};
+const DD=(a,b)=>{if(!a||!b)return null;return Math.round((new Date(b)-new Date(a))/864e5);};
+const HJ=()=>new Date().toISOString().split("T")[0];
+const addD=(d,n)=>{if(!d)return"";const dt=new Date(d+"T12:00:00");dt.setDate(dt.getDate()+n);return dt.toISOString().split("T")[0];};
+const bh=l=>{const c=SC[l]||"#64748b";return`<span class="badge" style="background:${c}22;color:${c};border:1px solid ${c}44">${l}</span>`;};
+const pbHtml=(pct,cor,h=7)=>`<div class="pt" style="height:${h}px"><div class="pb" style="width:${Math.min(100,Math.max(0,pct||0))}%;background:${cor};height:100%"></div></div>`;
+
+const TABS=[
+  {id:"dashboard",label:"Dashboard",icon:"📊"},
+  {id:"equipes",label:"Equipes",icon:"👷"},
+  {id:"estoque",label:"Estoque",icon:"📦"},
+  {id:"orcamento",label:"Orçamento",icon:"💰"},
+  {id:"cronograma",label:"Cronograma",icon:"📋"},
+  {id:"aportes",label:"Aportes",icon:"💎"},
+  {id:"financeiro",label:"Financeiro",icon:"📈"},
+];
+
+// ═══════════════════════════════════════════════════
+// ESTADO
+// ═══════════════════════════════════════════════════
+let S={
+  tab:"dashboard", modal:null, md:{},
+  subTabEquipe:"empreiteiros",
+  catAb:null, editCat:null, editMeta:false, novoMeta:"",
+  // dados carregados do Supabase
+  orcamentoTotal:500000,
+  obra:{nome:"Construção do Prédio",ini:"",fim:"",status:"Em andamento",conclusao:null},
+  empreiteiros:[],
+  funcionarios:[],
+  materiais:[],
+  categorias:[],
+  tarefas:[],
+  socios:[],
+  lancamentos:[]
+};
+
+// ═══════════════════════════════════════════════════
+// CARREGAR DADOS DO SUPABASE
+// ═══════════════════════════════════════════════════
+async function carregarTudo(){
+  try{
+    const [cfg,emp,pag,func,mat,cat,gas,tar,soc,lan]=await Promise.all([
+      sb.from("config").select("*").eq("id","principal").single(),
+      sb.from("empreiteiros").select("*").order("id"),
+      sb.from("pagamentos_empreiteiros").select("*").order("id"),
+      sb.from("funcionarios").select("*").order("id"),
+      sb.from("materiais").select("*").order("id"),
+      sb.from("categorias").select("*").order("id"),
+      sb.from("gastos").select("*").order("id"),
+      sb.from("tarefas").select("*").order("id"),
+      sb.from("socios").select("*").order("id"),
+      sb.from("lancamentos").select("*").order("id"),
+    ]);
+    if(cfg.data){
+      S.orcamentoTotal=cfg.data.orcamento_total||500000;
+      S.obra={
+        nome:cfg.data.obra_nome||"Minha Obra",
+        ini:cfg.data.obra_ini||"",
+        fim:cfg.data.obra_fim||"",
+        status:cfg.data.obra_status||"Em andamento",
+        conclusao:cfg.data.obra_conclusao||null
+      };
+    }
+    const pagData=pag.data||[];
+    S.empreiteiros=(emp.data||[]).map(e=>({...e,pagamentos:pagData.filter(p=>p.empreiteiro_id===e.id)}));
+    S.funcionarios=func.data||[];
+    S.materiais=mat.data||[];
+    const gasData=gas.data||[];
+    S.categorias=(cat.data||[]).map(c=>({...c,gastos:gasData.filter(g=>g.categoria_id===c.id)}));
+    S.tarefas=(tar.data||[]).map(t=>({...t,ini:t.ini||"",fim:t.fim||"",fimOrig:t.fim_orig||t.fim||"",tol:t.tolerancia||0,conclusao:t.conclusao||null}));
+    const lanData=lan.data||[];
+    S.socios=soc.data||[];
+    S.lancamentos=lanData;
+    setConn(true);
+  }catch(e){
+    console.error("Erro Supabase:",e);
+    setConn(false);
+  }
+  document.getElementById("loadingScreen").style.display="none";
+  document.getElementById("root").style.display="flex";
+  render();
+}
+
+async function salvarConfig(){
+  await sb.from("config").update({
+    orcamento_total:S.orcamentoTotal,
+    obra_nome:S.obra.nome,
+    obra_ini:S.obra.ini||null,
+    obra_fim:S.obra.fim||null,
+    obra_status:S.obra.status,
+    obra_conclusao:S.obra.conclusao||null,
+    updated_at:new Date().toISOString()
+  }).eq("id","principal");
+}
+
+function setConn(ok){
+  const dot=document.getElementById("connDot");
+  const txt=document.getElementById("connTxt");
+  if(dot)dot.style.background=ok?"#22c55e":"#ef4444";
+  if(txt)txt.textContent=ok?"Conectado à nuvem":"Sem conexão";
+}
+
+// ═══════════════════════════════════════════════════
+// TOTAIS
+// ═══════════════════════════════════════════════════
+const totLanc=sid=>S.lancamentos.filter(l=>l.socioId===sid||l.socio_id===sid).reduce((a,l)=>a+(l.valor||0),0);
+const totGeral=()=>S.lancamentos.reduce((a,l)=>a+(l.valor||0),0);
+const totPrevSocios=()=>S.socios.reduce((a,sc)=>a+(sc.previsao||0),0);
+const totGasto=()=>S.categorias.reduce((a,c)=>a+(c.gastos||[]).reduce((b,g)=>b+(g.valor||0),0),0);
+const totEmpPago=()=>S.empreiteiros.reduce((a,e)=>a+(e.pagamentos||[]).reduce((b,p)=>b+(p.valor||0),0),0);
+const totEmpContrato=()=>S.empreiteiros.reduce((a,e)=>a+(e.valor_empreitada||0),0);
+
+function stT(t){
+  if(t.status==="Concluída")return{l:"Concluída",c:"#22c55e"};
+  if(t.fim&&t.fim<HJ()&&t.status!=="Concluída")return{l:"Atrasada",c:"#ef4444"};
+  if(t.status==="Em andamento")return{l:"Em andamento",c:"#f59e0b"};
+  return{l:t.status||"Pendente",c:SC[t.status]||"#64748b"};
+}
+function progT(t){
+  if(t.status==="Concluída")return 100;
+  if(!t.ini||!t.fim)return 0;
+  const s=new Date(t.ini),e=new Date(t.fim),n=new Date(HJ());
+  if(n<=s)return 0;if(n>=e)return 100;
+  return Math.round(((n-s)/(e-s))*100);
+}
+function calcConc(t){
+  if(!t.conclusao||!t.ini||!t.fim)return null;
+  const dp=DD(t.ini,t.fim),dr=DD(t.ini,t.conclusao);
+  if(dp===null||dr===null)return null;
+  return{diasPrevistos:dp,diasReais:dr,diff:dr-dp};
+}
+function calcObra(){
+  const o=S.obra;if(!o.ini||!o.fim)return null;
+  const totalDias=DD(o.ini,o.fim);if(!totalDias||totalDias<=0)return null;
+  const ref=o.status==="Concluída"&&o.conclusao?o.conclusao:HJ();
+  const dec=Math.max(0,DD(o.ini,ref));
+  const pct=Math.min(100,Math.round((dec/totalDias)*100));
+  const rest=DD(HJ(),o.fim);
+  const pctHJ=Math.min(100,Math.max(0,Math.round((Math.max(0,DD(o.ini,HJ()))/totalDias)*100)));
+  return{totalDias,dec,pct,rest,pctHJ};
+}
+function stObra(){
+  const o=S.obra;
+  if(o.status==="Concluída")return{l:"Concluída",c:"#22c55e"};
+  if(o.status==="Pendente")return{l:"Pendente",c:"#6366f1"};
+  if(o.fim&&o.fim<HJ())return{l:"Atrasada",c:"#ef4444"};
+  return{l:"Em andamento",c:"#f59e0b"};
+}
+function calcConcObra(){
+  const o=S.obra;if(!o.conclusao||!o.ini||!o.fim)return null;
+  const dp=DD(o.ini,o.fim),dr=DD(o.ini,o.conclusao);
+  if(dp===null||dr===null)return null;
+  return{diasPrevistos:dp,diasReais:dr,diff:dr-dp};
+}
+
+// ═══════════════════════════════════════════════════
+// FINANCEIRO — Resumo Geral
+// ═══════════════════════════════════════════════════
+function pgFin(){
+  const meta=S.orcamentoTotal;
+  const tG=totGasto();
+  const tAp=totGeral();
+  const empPago=totEmpPago();
+  const empContrato=totEmpContrato();
+  const empDev=Math.max(0,empContrato-empPago);
+  const gastoTotal=tG+empPago;
+  const saldo=meta-gastoTotal;
+  const pct=meta>0?Math.min(100,Math.round((gastoTotal/meta)*100)):0;
+  const corSaldo=saldo>=0?"#22c55e":"#ef4444";
+  const corPct=pct>=100?"#ef4444":pct>=80?"#f59e0b":"#22c55e";
+
+  return`
+  <div class="page-title" style="margin-bottom:6px">📈 Financeiro</div>
+  <div style="color:#64748b;font-size:12px;margin-bottom:16px">Resumo geral de todos os gastos da obra</div>
+
+  <!-- CARDS PRINCIPAIS -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+    <div class="card" style="border-top:4px solid #6366f1;border-radius:0 0 12px 12px;grid-column:span 2">
+      <div style="color:#94a3b8;font-size:10px;font-weight:600;letter-spacing:.5px;margin-bottom:6px">💰 ORÇAMENTO TOTAL DA OBRA</div>
+      <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#6366f1">R$ ${R(meta)}</div>
+      <div style="margin-top:10px">${pbHtml(pct,corPct,12)}</div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px">
+        <span style="color:#94a3b8;font-size:12px">${pct}% executado</span>
+        <span style="color:${corPct};font-size:12px;font-weight:700">${pct>=100?"⚠️ Orçamento estourado!":pct>=80?"⚠️ Atenção!":"✅ Dentro do orçamento"}</span>
+      </div>
+    </div>
+    <div class="card" style="border-top:4px solid #ef4444;border-radius:0 0 12px 12px">
+      <div style="color:#94a3b8;font-size:10px;font-weight:600;margin-bottom:4px">💸 TOTAL GASTO</div>
+      <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#ef4444">R$ ${R(gastoTotal)}</div>
+      <div style="color:#475569;font-size:11px;margin-top:4px">Etapas + Empreiteiros</div>
+    </div>
+    <div class="card" style="border-top:4px solid ${corSaldo};border-radius:0 0 12px 12px">
+      <div style="color:#94a3b8;font-size:10px;font-weight:600;margin-bottom:4px">${saldo>=0?"✅ SALDO DISPONÍVEL":"⚠️ SALDO NEGATIVO"}</div>
+      <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:${corSaldo}">R$ ${R(Math.abs(saldo))}</div>
+      <div style="color:#475569;font-size:11px;margin-top:4px">${saldo>=0?"ainda disponível":"acima do orçamento"}</div>
+    </div>
+  </div>
+
+  <!-- EMPREITEIROS -->
+  <div class="card" style="margin-bottom:14px">
+    <div style="color:#64748b;font-size:11px;font-weight:600;margin-bottom:12px">🔨 EMPREITEIROS</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px">
+      <div style="background:#0f172a;border-radius:8px;padding:10px">
+        <div style="color:#475569;font-size:10px">TOTAL CONTRATADO</div>
+        <div style="color:#6366f1;font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-top:3px">R$ ${R(empContrato)}</div>
+      </div>
+      <div style="background:#0f172a;border-radius:8px;padding:10px">
+        <div style="color:#475569;font-size:10px">TOTAL PAGO</div>
+        <div style="color:#22c55e;font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-top:3px">R$ ${R(empPago)}</div>
+      </div>
+      <div style="background:#0f172a;border-radius:8px;padding:10px">
+        <div style="color:#475569;font-size:10px">A PAGAR</div>
+        <div style="color:${empDev>0?"#ef4444":"#22c55e"};font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-top:3px">R$ ${R(empDev)}</div>
+      </div>
+    </div>
+    ${pbHtml(empContrato>0?Math.round((empPago/empContrato)*100):0,"#22c55e",8)}
+  </div>
+
+  <!-- APORTES -->
+  <div class="card" style="margin-bottom:14px">
+    <div style="color:#64748b;font-size:11px;font-weight:600;margin-bottom:12px">💎 CAPTAÇÃO / APORTES</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px">
+      <div style="background:#0f172a;border-radius:8px;padding:10px">
+        <div style="color:#475569;font-size:10px">META</div>
+        <div style="color:#6366f1;font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-top:3px">R$ ${R(meta)}</div>
+      </div>
+      <div style="background:#0f172a;border-radius:8px;padding:10px">
+        <div style="color:#475569;font-size:10px">APORTADO</div>
+        <div style="color:#22c55e;font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-top:3px">R$ ${R(tAp)}</div>
+      </div>
+      <div style="background:#0f172a;border-radius:8px;padding:10px">
+        <div style="color:#475569;font-size:10px">FALTAM</div>
+        <div style="color:${tAp>=meta?"#22c55e":"#f59e0b"};font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-top:3px">${tAp>=meta?"✅ Meta!":"R$ "+R(meta-tAp)}</div>
+      </div>
+    </div>
+    ${pbHtml(meta>0?Math.min(100,Math.round((tAp/meta)*100)):0,"#38bdf8",8)}
+  </div>
+
+  <!-- GASTOS POR ETAPA -->
+  <div class="card">
+    <div style="color:#64748b;font-size:11px;font-weight:600;margin-bottom:14px">🏗 GASTOS POR ETAPA</div>
+    ${S.categorias.length===0?`<div style="color:#475569;font-size:12px;text-align:center;padding:16px">Nenhuma etapa cadastrada</div>`:""}
+    ${S.categorias.map((cat,idx)=>{
+      const gc=(cat.gastos||[]).reduce((a,g)=>a+(g.valor||0),0);
+      const pctE=cat.previsto>0?Math.min(100,Math.round((gc/cat.previsto)*100)):0;
+      const pctT=meta>0?Math.round((cat.previsto/meta)*100):0;
+      const saldoCat=cat.previsto-gc;
+      const cor=pctE>=100?"#ef4444":pctE>=80?"#f59e0b":"#22c55e";
+      const CORES_CAT=["#6366f1","#38bdf8","#a78bfa","#34d399","#fb923c","#f472b6","#f59e0b","#22c55e","#e879f9","#38bdf8"];
+      const corCat=CORES_CAT[idx%CORES_CAT.length];
+      return`
+      <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #1e293b">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:4px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:16px">${cat.icone||"🏗"}</span>
+            <span style="color:#e2e8f0;font-weight:700;font-size:13px">${cat.nome}</span>
+            <span style="display:inline-flex;background:#6366f118;border:1px solid #6366f133;border-radius:20px;padding:1px 8px;font-size:10px;color:#818cf8;font-weight:700">${pctT}% do total</span>
+          </div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <div style="text-align:right"><div style="color:#475569;font-size:10px">PREVISTO</div><div style="color:#94a3b8;font-size:12px;font-weight:700">R$ ${R(cat.previsto)}</div></div>
+            <div style="text-align:right"><div style="color:#475569;font-size:10px">GASTO</div><div style="color:${cor};font-size:12px;font-weight:700">R$ ${R(gc)}</div></div>
+            <div style="text-align:right"><div style="color:#475569;font-size:10px">SALDO</div><div style="color:${saldoCat>=0?"#22c55e":"#ef4444"};font-size:12px;font-weight:700">R$ ${R(saldoCat)}</div></div>
+          </div>
+        </div>
+        <div style="background:#0f172a;border-radius:20px;height:10px;overflow:hidden;position:relative">
+          <div style="position:absolute;left:0;height:100%;width:${pctE}%;background:${cor};border-radius:20px;transition:width .3s"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:4px">
+          <span style="color:#475569;font-size:10px">${(cat.gastos||[]).length} lançamento(s)</span>
+          <span style="color:${cor};font-size:10px;font-weight:700">${pctE}% executado</span>
+        </div>
+      </div>`;
+    }).join("")}
+    <!-- TOTAL GERAL -->
+    <div style="background:#0f172a;border-radius:10px;padding:14px;margin-top:4px">
+      <div style="color:#64748b;font-size:11px;font-weight:600;margin-bottom:10px">RESUMO GERAL</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+        <div><div style="color:#475569;font-size:10px">ORÇAMENTO</div><div style="color:#6366f1;font-family:'Syne',sans-serif;font-size:15px;font-weight:700">R$ ${R(meta)}</div></div>
+        <div><div style="color:#475569;font-size:10px">TOTAL GASTO</div><div style="color:#ef4444;font-family:'Syne',sans-serif;font-size:15px;font-weight:700">R$ ${R(gastoTotal)}</div></div>
+        <div><div style="color:#475569;font-size:10px">${saldo>=0?"DISPONÍVEL":"EXCEDIDO"}</div><div style="color:${corSaldo};font-family:'Syne',sans-serif;font-size:15px;font-weight:700">R$ ${R(Math.abs(saldo))}</div></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════
+function render(){
+  document.getElementById("nav").innerHTML=TABS.map(t=>
+    `<button class="nav-btn${S.tab===t.id?" active":""}" onclick="go('${t.id}')">${t.icon} ${t.label}</button>`
+  ).join("");
+  document.getElementById("mobileNav").innerHTML=TABS.map(t=>
+    `<button class="mobile-nav-btn${S.tab===t.id?" active":""}" onclick="go('${t.id}')"><span style="font-size:18px">${t.icon}</span><span style="font-size:9px;font-weight:600">${t.label}</span></button>`
+  ).join("");
+  const pages={dashboard:pgDash,equipes:pgEquipes,estoque:pgEstoque,orcamento:pgOrc,cronograma:pgCron,aportes:pgAp,financeiro:pgFin};
+  document.getElementById("main").innerHTML=(pages[S.tab]||pgDash)();
+  renderModal();
+}
+
+// ═══════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════
+function pgDash(){
+  const meta=S.orcamentoTotal,tG=totGasto(),tAp=totGeral();
+  const pctOrc=meta>0?Math.round((tG/meta)*100):0;
+  const pctMeta=meta>0?Math.min(100,Math.round((tAp/meta)*100)):0;
+  const conc=S.tarefas.filter(t=>t.status==="Concluída").length;
+  const atras=S.tarefas.filter(t=>t.fim&&t.fim<HJ()&&t.status!=="Concluída").length;
+  const obraCalc=calcObra();const stO=stObra();
+  const empPago=totEmpPago(),empContrato=totEmpContrato(),empDev=Math.max(0,empContrato-empPago);
+  return`<div class="page-title" style="margin-bottom:16px">Dashboard</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px">
+    <div class="card"><div style="font-family:'Syne',sans-serif;font-size:19px;font-weight:700;color:#6366f1">R$ ${R(meta)}</div><div style="color:#94a3b8;font-size:11px;margin-top:2px">Orçamento Total</div><div style="margin-top:4px"><span class="sync-tag">🔗 Meta</span></div></div>
+    <div class="card"><div style="font-family:'Syne',sans-serif;font-size:19px;font-weight:700;color:#f59e0b">${S.empreiteiros.length}</div><div style="color:#94a3b8;font-size:11px;margin-top:2px">Empreiteiros</div><div style="color:#475569;font-size:10px;margin-top:2px">R$ ${R(empDev)} a pagar</div></div>
+    <div class="card"><div style="font-family:'Syne',sans-serif;font-size:19px;font-weight:700;color:#f59e0b">${conc}/${S.tarefas.length}</div><div style="color:#94a3b8;font-size:11px;margin-top:2px">Tarefas</div></div>
+    <div class="card"><div style="font-family:'Syne',sans-serif;font-size:19px;font-weight:700;color:#38bdf8">R$ ${R(tAp)}</div><div style="color:#94a3b8;font-size:11px;margin-top:2px">Total Aportado</div><div style="color:#475569;font-size:10px">${pctMeta}% da meta</div></div>
+    <div class="card"><div style="font-family:'Syne',sans-serif;font-size:19px;font-weight:700;color:${obraCalc?stO.c:"#64748b"}">${obraCalc?obraCalc.pct+"%":"—"}</div><div style="color:#94a3b8;font-size:11px;margin-top:2px">Obra</div><div style="color:${stO.c};font-size:10px">${stO.l}</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+    <div class="card"><div class="sec">GASTOS vs ORÇAMENTO</div>${pbHtml(pctOrc,"#f59e0b")}
+      <div style="display:flex;justify-content:space-between;margin-top:7px"><span style="color:#f59e0b;font-weight:700;font-size:12px">R$ ${R(tG)} gasto</span><span style="color:#475569;font-size:12px">R$ ${R(meta-tG)} restante</span></div></div>
+    <div class="card"><div class="sec">EMPREITEIROS</div>${pbHtml(empContrato>0?Math.round((empPago/empContrato)*100):0,"#f59e0b")}
+      <div style="display:flex;justify-content:space-between;margin-top:7px"><span style="color:#22c55e;font-weight:700;font-size:12px">R$ ${R(empPago)} pago</span><span style="color:#ef4444;font-size:12px">R$ ${R(empDev)} devedor</span></div></div>
+  </div>
+  <div class="card"><div class="sec">ÚLTIMAS TAREFAS</div>
+    ${S.tarefas.length===0?`<div style="color:#475569;font-size:12px;text-align:center;padding:8px">Nenhuma tarefa cadastrada</div>`:S.tarefas.slice(0,3).map(t=>{const st=stT(t);return`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="color:#cbd5e1;font-size:13px">${t.titulo}</span><span class="badge" style="background:${st.c}22;color:${st.c};border:1px solid ${st.c}44">${st.l}</span></div>`;}).join("")}
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════
+// EQUIPES
+// ═══════════════════════════════════════════════════
+function pgEquipes(){
+  const sub=S.subTabEquipe;
+  return`
+  <div class="row-hdr"><div class="page-title">Equipes</div>${sub==="empreiteiros"?`<button class="btn btn-primary" onclick="om('novoEmp')">+ Novo Empreiteiro</button>`:`<button class="btn btn-primary" onclick="om('novoFunc')">+ Novo Funcionário</button>`}</div>
+  <div style="display:flex;gap:4px;margin-bottom:16px;background:#111827;border-radius:10px;padding:4px;width:fit-content">
+    <button class="tab-pill ${sub==="empreiteiros"?"on":"off"}" onclick="setSubTab('empreiteiros')">🔨 Empreiteiros</button>
+    <button class="tab-pill ${sub==="funcionarios"?"on":"off"}" onclick="setSubTab('funcionarios')">👷 Funcionários</button>
+  </div>
+  ${sub==="empreiteiros"?renderEmpreiteiros():renderFuncionarios()}`;
+}
+
+function renderEmpreiteiros(){
+  if(S.empreiteiros.length===0)return`<div class="card" style="text-align:center;color:#475569;padding:30px">Nenhum empreiteiro cadastrado.</div>`;
+  const totalEmp=totEmpContrato(),totalPago=totEmpPago(),totalDev=Math.max(0,totalEmp-totalPago);
+  const pctGeral=totalEmp>0?Math.min(100,Math.round((totalPago/totalEmp)*100)):0;
+  return`
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+    <div class="card" style="border-top:3px solid #6366f1;border-radius:0 0 12px 12px"><div style="color:#94a3b8;font-size:10px">TOTAL EMPREITADAS</div><div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:#6366f1;margin-top:3px">R$ ${R(totalEmp)}</div></div>
+    <div class="card" style="border-top:3px solid #22c55e;border-radius:0 0 12px 12px"><div style="color:#94a3b8;font-size:10px">TOTAL PAGO</div><div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:#22c55e;margin-top:3px">R$ ${R(totalPago)}</div></div>
+    <div class="card" style="border-top:3px solid #ef4444;border-radius:0 0 12px 12px"><div style="color:#94a3b8;font-size:10px">SALDO DEVEDOR</div><div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:${totalDev>0?"#ef4444":"#22c55e"};margin-top:3px">R$ ${R(totalDev)}</div></div>
+  </div>
+  <div class="card" style="margin-bottom:14px;padding:12px 16px">
+    <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span class="sec" style="margin:0">PROGRESSO GERAL</span><span style="color:${pctGeral>=100?"#22c55e":"#f59e0b"};font-size:12px;font-weight:700">${pctGeral}%</span></div>
+    <div class="pt" style="height:10px"><div class="pb" style="width:${pctGeral}%;background:${pctGeral>=100?"#22c55e":"#f59e0b"}"></div></div>
+  </div>
+  <div class="grid-1">
+  ${S.empreiteiros.map((e,idx)=>{
+    const cor=CORES_EMP[idx%CORES_EMP.length];
+    const pago=(e.pagamentos||[]).reduce((a,p)=>a+(p.valor||0),0);
+    const dev=Math.max(0,(e.valor_empreitada||0)-pago);
+    const pct=(e.valor_empreitada||0)>0?Math.min(100,Math.round((pago/(e.valor_empreitada||1))*100)):0;
+    const quit=pago>=(e.valor_empreitada||0)&&(e.valor_empreitada||0)>0;
+    const stCor=e.status==="Concluída"?"#22c55e":e.status==="Em andamento"?"#f59e0b":"#6366f1";
+    return`<div class="card" style="border-left:4px solid ${cor};border-radius:0 12px 12px 0">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="avatar" style="background:${cor}22;color:${cor}">${(e.nome||"?").split(" ").map(n=>n[0]).slice(0,2).join("")}</div>
+          <div><div style="color:#e2e8f0;font-weight:700;font-size:14px">${e.nome}</div>
+            <div style="color:#64748b;font-size:11px;margin-top:2px">🔨 ${e.especialidade||""}</div>
+            ${e.telefone?`<div style="color:#64748b;font-size:11px">📞 ${e.telefone}</div>`:""}
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0">
+          <span class="badge" style="background:${stCor}22;color:${stCor};border:1px solid ${stCor}44">${e.status||"Pendente"}</span>
+          ${quit?`<span class="badge" style="background:#22c55e22;color:#22c55e;border:1px solid #22c55e44">✅ Quitado</span>`:""}
+        </div>
+      </div>
+      <div style="background:#0f172a;border-radius:8px;padding:10px 12px;margin-bottom:10px">
+        ${e.descricao?`<div style="color:#475569;font-size:11px;margin-bottom:8px;font-style:italic">"${e.descricao}"</div>`:""}
+        <div style="display:flex;gap:20px;flex-wrap:wrap">
+          <div><div style="color:#475569;font-size:10px">EMPREITADA</div><div style="color:#6366f1;font-family:'Syne',sans-serif;font-size:16px;font-weight:700">R$ ${R(e.valor_empreitada)}</div></div>
+          <div><div style="color:#475569;font-size:10px">PAGO</div><div style="color:#22c55e;font-family:'Syne',sans-serif;font-size:16px;font-weight:700">R$ ${R(pago)}</div></div>
+          <div><div style="color:#475569;font-size:10px">DEVEDOR</div><div style="color:${dev>0?"#ef4444":"#22c55e"};font-family:'Syne',sans-serif;font-size:16px;font-weight:700">R$ ${R(dev)}</div></div>
+        </div>
+      </div>
+      <div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:#475569;font-size:11px">${(e.pagamentos||[]).length} pagamento(s)</span><span style="color:${cor};font-size:12px;font-weight:700">${pct}%</span></div>
+        <div class="pt" style="height:10px"><div class="pb" style="width:${pct}%;background:${quit?"#22c55e":cor}"></div></div>
+      </div>
+      ${(e.pagamentos||[]).length>0?`<div style="border-top:1px solid #2a3a55;padding-top:10px;margin-bottom:10px">
+        <div class="sec">HISTÓRICO DE PAGAMENTOS</div>
+        ${(e.pagamentos||[]).map(p=>`<div class="pag-row"><div><div style="color:#cbd5e1;font-size:12px">${p.descricao||"Pagamento"}</div><div style="color:#475569;font-size:10px">📅 ${FD(p.data)}</div></div>
+        <div style="display:flex;align-items:center;gap:8px"><span style="color:#22c55e;font-weight:700;font-size:13px">R$ ${R(p.valor)}</span><button class="btn btn-danger btn-sm" onclick="delPag(${e.id},${p.id})">✕</button></div></div>`).join("")}
+      </div>`:""}
+      <div style="display:flex;flex-wrap:wrap;gap:6px;border-top:1px solid #1e293b;padding-top:10px">
+        <button class="btn btn-green btn-sm" onclick="om('novoPag',{id:${e.id}})">💵 Lançar pagamento</button>
+        <button class="btn btn-edit btn-sm" onclick="om('editEmp',{id:${e.id}})">✏️ Editar</button>
+        <button class="btn btn-danger btn-sm" style="margin-left:auto" onclick="delEmp(${e.id})">🗑 Remover</button>
+      </div>
+    </div>`;}).join("")}
+  </div>`;
+}
+
+function renderFuncionarios(){
+  if(S.funcionarios.length===0)return`<div class="card" style="text-align:center;color:#475569;padding:30px">Nenhum funcionário cadastrado.</div>`;
+  return`<div class="grid-1">${S.funcionarios.map(f=>{const c=SC[f.status]||"#64748b";
+    return`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="display:flex;align-items:center;gap:11px"><div class="avatar" style="background:#6366f120;color:#818cf8">${(f.nome||"?").split(" ").map(n=>n[0]).slice(0,2).join("")}</div>
+      <div><div style="color:#e2e8f0;font-weight:700;font-size:13px">${f.nome}</div><div style="color:#64748b;font-size:12px">${f.funcao||""} · ${f.equipe||""}</div></div></div>
+      <div style="display:flex;align-items:center;gap:8px"><span class="badge" style="background:${c}22;color:${c};border:1px solid ${c}44">${f.status}</span><button class="btn btn-danger btn-sm" onclick="delFunc(${f.id})">✕</button></div>
+    </div></div>`;}).join("")}</div>`;
+}
+
+// ═══════════════════════════════════════════════════
+// ESTOQUE
+// ═══════════════════════════════════════════════════
+function pgEstoque(){
+  return`<div class="row-hdr"><div class="page-title">Estoque</div><button class="btn btn-primary" onclick="om('mat')">+ Novo Material</button></div>
+  <div class="grid-1">
+  ${S.materiais.length===0?`<div class="card" style="text-align:center;color:#475569;padding:30px">Nenhum material cadastrado.</div>`:S.materiais.map(m=>{const bx=(m.quantidade||0)<=(m.minimo||0);const pct=Math.min(100,Math.round(((m.quantidade||0)/((m.minimo||1)*3))*100));const cor=bx?"#ef4444":"#22c55e";
+    return`<div class="card" style="border-left:3px solid ${cor}"><div style="display:flex;justify-content:space-between;align-items:center">
+      <div><div style="color:#e2e8f0;font-weight:700;font-size:13px">${m.nome}</div><div style="color:#64748b;font-size:11px">R$ ${R(m.custo)}/${m.unidade} · Mín: ${m.minimo}</div></div>
+      <div style="display:flex;align-items:center;gap:8px"><div style="text-align:right"><div style="color:${cor};font-family:'Syne',sans-serif;font-size:19px;font-weight:700">${m.quantidade}</div><div style="color:#475569;font-size:10px">${m.unidade}(s)</div></div>
+      ${bx?bh("Estoque Baixo"):""}<button class="btn btn-danger btn-sm" onclick="delMat(${m.id})">✕</button></div></div>
+      ${pbHtml(pct,cor,4)}
+    </div>`;}).join("")}
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════
+// ORÇAMENTO
+// ═══════════════════════════════════════════════════
+function pgOrc(){
+  const meta=S.orcamentoTotal,tG=totGasto(),sl=meta-tG,pg=meta>0?Math.round((tG/meta)*100):0;
+  return`<div class="row-hdr"><div class="page-title">Orçamento</div><button class="btn btn-primary" onclick="om('cat')">+ Nova Etapa</button></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">
+    <div class="card" style="border-top:3px solid #6366f1;border-radius:0 0 12px 12px">
+      <div style="color:#94a3b8;font-size:10px">ORÇAMENTO PREVISTO</div>
+      ${S.editMeta?`<div style="display:flex;align-items:center;gap:6px;margin-top:4px"><span style="color:#6366f1;font-size:13px;font-weight:700">R$</span><input type="number" value="${S.novoMeta}" oninput="S.novoMeta=this.value" onkeydown="if(event.key==='Enter')svMeta()" style="background:#0f172a;border:2px solid #6366f1;border-radius:7px;padding:5px 8px;color:#a5b4fc;font-size:14px;font-weight:700;width:120px;outline:none;margin:0"></div>`
+      :`<div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:#6366f1;margin-top:4px">R$ ${R(meta)}</div>`}
+      <div style="margin-top:5px"><span class="sync-tag">🔗 = Meta de Captação</span></div>
+      <div style="margin-top:6px">${S.editMeta?`<div style="display:flex;gap:4px"><button class="btn btn-primary btn-sm" onclick="svMeta()">✔</button><button class="btn btn-ghost btn-sm" onclick="S.editMeta=false;render()">✕</button></div>`:`<button class="btn btn-edit btn-sm" onclick="S.editMeta=true;S.novoMeta=S.orcamentoTotal;render()">✏️ Editar</button>`}</div>
+    </div>
+    <div class="card" style="border-top:3px solid #ef4444;border-radius:0 0 12px 12px"><div style="color:#94a3b8;font-size:10px">TOTAL GASTO</div><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:#ef4444;margin-top:4px">R$ ${R(tG)}</div></div>
+    <div class="card" style="border-top:3px solid #22c55e;border-radius:0 0 12px 12px"><div style="color:#94a3b8;font-size:10px">SALDO</div><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:${sl>=0?"#22c55e":"#ef4444"};margin-top:4px">R$ ${R(sl)}</div></div>
+  </div>
+  <div class="card" style="margin-bottom:12px;padding:12px 16px"><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span class="sec" style="margin:0">EXECUÇÃO GERAL</span><span style="color:${pg>=100?"#ef4444":pg>=80?"#f59e0b":"#22c55e"};font-size:12px;font-weight:700">${pg}%</span></div>${pbHtml(pg,pg>=100?"#ef4444":pg>=80?"#f59e0b":"#22c55e",10)}</div>
+  <div class="grid-1">${S.categorias.map(cat=>{
+    const gc=(cat.gastos||[]).reduce((a,g)=>a+(g.valor||0),0);
+    const pctE=cat.previsto>0?Math.min(100,Math.round((gc/cat.previsto)*100)):0;
+    const pctT=meta>0?Math.round((cat.previsto/meta)*100):0;
+    const ab=S.catAb===cat.id,ed=S.editCat===cat.id;
+    const cor=pctE>=100?"#ef4444":pctE>=80?"#f59e0b":"#22c55e";
+    const saldo=cat.previsto-gc;
+    return`<div class="card" style="padding:0;overflow:hidden">
+      <div class="cat-row" onclick="tgCat(${cat.id})">
+        <span style="font-size:18px">${cat.icone||"🏗"}</span>
+        <div style="flex:1">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px">
+            <span style="color:#e2e8f0;font-weight:700;font-size:13px">${cat.nome}</span>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <span class="pct-pill">${pctT}%</span>
+              <span style="color:#94a3b8;font-size:12px">Prev: <strong style="color:#e2e8f0">R$ ${R(cat.previsto)}</strong></span>
+              <span style="color:${cor};font-weight:700;font-size:12px">Gasto: R$ ${R(gc)}</span>
+            </div>
+          </div>
+          ${pbHtml(pctE,cor,5)}
+        </div>
+        <span style="color:#475569;margin-left:8px">${ab?"▲":"▼"}</span>
+      </div>
+      ${ab?`<div style="border-top:1px solid #2a3a55;background:#141e30">
+        <div style="padding:10px 15px;border-bottom:1px solid #1e293b">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span style="color:#94a3b8;font-size:11px;font-weight:600">✏️ AJUSTAR PREVISTO:</span>
+            ${ed?`<div class="prev-edit">
+              <span style="color:#475569;font-size:11px">R$</span>
+              <input class="prev-input" id="pv${cat.id}" type="number" value="${cat.previsto}" oninput="syncPct(${cat.id},'v',this.value)">
+              <span style="color:#475569;font-size:11px;margin:0 4px">|</span>
+              <input class="pct-input" id="pp${cat.id}" type="number" value="${pctT}" oninput="syncPct(${cat.id},'p',this.value)">
+              <span style="color:#f59e0b;font-size:11px">%</span>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="svPrev(${cat.id})">✔ Salvar</button>
+            <button class="btn btn-ghost btn-sm" onclick="S.editCat=null;render()">Cancelar</button>`
+            :`<div style="display:flex;align-items:center;gap:8px">
+              <div class="chip">R$ <strong style="color:#e2e8f0;margin-left:3px">${R(cat.previsto)}</strong></div>
+              <div class="chip">% <strong style="color:#e2e8f0;margin-left:3px">${pctT}%</strong></div>
+              <button class="btn btn-edit btn-sm" onclick="event.stopPropagation();S.editCat=${cat.id};render()">✏️ Alterar</button>
+            </div>`}
+          </div>
+        </div>
+        <div style="padding:12px 15px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px">
+            <span class="sec" style="margin:0">LANÇAMENTOS</span>
+            <div style="display:flex;gap:5px"><button class="btn btn-ghost btn-sm" onclick="om('gasto',{catId:${cat.id},catNome:'${cat.icone} ${cat.nome}'})">+ Lançar</button><button class="btn btn-danger btn-sm" onclick="delCat(${cat.id})">🗑</button></div>
+          </div>
+          ${(cat.gastos||[]).length===0?`<div style="color:#475569;font-size:12px;text-align:center;padding:8px">Nenhum gasto lançado</div>`
+          :`<div>${(cat.gastos||[]).map(g=>`<div class="gasto-row"><div><div style="color:#cbd5e1;font-size:12px">${g.descricao||""}</div>${g.data?`<div style="color:#475569;font-size:10px">${FD(g.data)}</div>`:""}</div><div style="display:flex;align-items:center;gap:8px"><span style="color:#f59e0b;font-weight:700;font-size:12px">R$ ${R(g.valor)}</span><button class="btn btn-danger btn-sm" onclick="delGasto(${cat.id},${g.id})">✕</button></div></div>`).join("")}
+          <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:8px;padding-top:6px;border-top:1px solid #2a3a55">
+            <span style="color:#475569;font-size:11px">Total: <strong style="color:#f59e0b">R$ ${R(gc)}</strong></span>
+            <span style="color:#475569;font-size:11px">Saldo: <strong style="color:${saldo>=0?"#22c55e":"#ef4444"}">R$ ${R(saldo)}</strong></span>
+          </div></div>`}
+        </div>
+      </div>`:""}
+    </div>`;}).join("")}</div>`;
+}
+
+// ═══════════════════════════════════════════════════
+// CRONOGRAMA
+// ═══════════════════════════════════════════════════
+function pgCron(){
+  const hj=HJ(),o=S.obra,obraCalc=calcObra(),stO=stObra(),concO=calcConcObra();
+  const conc=S.tarefas.filter(t=>t.status==="Concluída").length;
+  const and=S.tarefas.filter(t=>t.status==="Em andamento").length;
+  const atras=S.tarefas.filter(t=>t.fim&&t.fim<hj&&t.status!=="Concluída").length;
+  const pend=S.tarefas.filter(t=>t.status==="Pendente").length;
+  const corO=stO.c,diasRestO=o.ini&&o.fim?DD(hj,o.fim):null;
+  return`
+  <div class="row-hdr"><div class="page-title">Cronograma</div><button class="btn btn-primary" onclick="om('tar')">+ Nova Tarefa</button></div>
+  <div class="obra-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+      <div><div style="color:#6366f1;font-size:10px;font-weight:700;letter-spacing:.8px;margin-bottom:4px">🏗 CRONOGRAMA GERAL DA OBRA</div>
+        <div style="color:#e2e8f0;font-family:'Syne',sans-serif;font-size:17px;font-weight:700">${o.nome||"Minha Obra"}</div></div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <select class="ssel-obra" onchange="mudaStObra(this.value)" style="border-color:${corO}66;color:${corO}">
+          ${["Pendente","Em andamento","Concluída"].map(s=>`<option${o.status===s?" selected":""}>${s}</option>`).join("")}
+        </select>
+        <button class="btn btn-edit btn-sm" onclick="om('editObra')">⚙️ Configurar</button>
+        ${o.status==="Concluída"?`<button class="btn btn-sm" style="background:#22c55e20;color:#22c55e;border:1px solid #22c55e40" onclick="om('concluirObra')">📅 Editar conclusão</button>`:""}
+      </div>
+    </div>
+    ${!o.ini||!o.fim
+      ?`<div style="background:#6366f115;border:1px solid #6366f130;border-radius:8px;padding:12px 14px;text-align:center"><div style="color:#818cf8;font-size:13px">Clique em <strong>⚙️ Configurar</strong> para definir o prazo geral</div></div>`
+      :`<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:4px;align-items:center">
+          <div class="chip">📅 Início <strong style="color:#e2e8f0;margin-left:3px">${FD(o.ini)}</strong></div>
+          <span style="color:#475569;font-size:11px">→</span>
+          <div class="chip">🏁 Término <strong style="color:#e2e8f0;margin-left:3px">${FD(o.fim)}</strong></div>
+          ${obraCalc?`<div class="chip">⏱ <strong style="color:#e2e8f0;margin-left:3px">${obraCalc.totalDias}d total</strong></div>`:""}
+          ${diasRestO!==null&&o.status!=="Concluída"?`<span class="badge" style="background:${diasRestO<0?"#ef4444":diasRestO<=15?"#f59e0b":"#22c55e"}18;color:${diasRestO<0?"#ef4444":diasRestO<=15?"#f59e0b":"#22c55e"};border:1px solid ${diasRestO<0?"#ef4444":diasRestO<=15?"#f59e0b":"#22c55e"}30">${diasRestO>=0?diasRestO+"d restantes":Math.abs(diasRestO)+"d atraso"}</span>`:""}
+        </div>
+        <div class="obra-pt"><div class="obra-pb" style="width:${obraCalc?obraCalc.pct:0}%;background:${corO}"></div>${obraCalc&&obraCalc.pctHJ<100&&o.status!=="Concluída"?`<div class="obra-hoje-marker" style="left:${obraCalc.pctHJ}%"></div>`:""}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px"><span style="color:#475569;font-size:10px">${FD(o.ini)}</span>${obraCalc?`<span style="color:${corO};font-family:'Syne',sans-serif;font-size:15px;font-weight:800">${obraCalc.pct}% concluído</span>`:""}<span style="color:#475569;font-size:10px">${FD(o.fim)}</span></div>
+        ${obraCalc?`<div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px">
+          <div><div style="color:#475569;font-size:10px">DECORRIDOS</div><div style="color:#f59e0b;font-family:'Syne',sans-serif;font-size:15px;font-weight:700">${obraCalc.dec}d</div></div>
+          <div><div style="color:#475569;font-size:10px">PREVISTOS</div><div style="color:#6366f1;font-family:'Syne',sans-serif;font-size:15px;font-weight:700">${obraCalc.totalDias}d</div></div>
+          ${obraCalc.rest!==null?`<div><div style="color:#475569;font-size:10px">${obraCalc.rest>=0?"RESTAM":"ATRASO"}</div><div style="color:${obraCalc.rest>=0?"#22c55e":"#ef4444"};font-family:'Syne',sans-serif;font-size:15px;font-weight:700">${Math.abs(obraCalc.rest)}d</div></div>`:""}
+        </div>`:""}
+        ${o.status==="Concluída"&&concO?`<div style="background:${concO.diff<0?"#22c55e":concO.diff===0?"#38bdf8":"#ef4444"}15;border:1px solid ${concO.diff<0?"#22c55e":concO.diff===0?"#38bdf8":"#ef4444"}33;border-radius:8px;padding:12px 14px;margin-top:12px">
+          <div style="color:#64748b;font-size:10px;font-weight:600;margin-bottom:8px">🏆 RESULTADO FINAL</div>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:8px">
+            <div><div style="color:#475569;font-size:10px">CONCLUSÃO REAL</div><div style="color:#e2e8f0;font-size:13px;font-weight:700">${FD(o.conclusao)}</div></div>
+            <div><div style="color:#475569;font-size:10px">PRAZO</div><div style="color:#6366f1;font-size:13px;font-weight:700">${concO.diasPrevistos}d</div></div>
+            <div><div style="color:#475569;font-size:10px">REAL</div><div style="color:#f59e0b;font-size:13px;font-weight:700">${concO.diasReais}d</div></div>
+          </div>
+          <span style="display:inline-flex;align-items:center;gap:5px;background:${concO.diff<0?"#22c55e":concO.diff===0?"#38bdf8":"#ef4444"}20;border:1px solid ${concO.diff<0?"#22c55e":concO.diff===0?"#38bdf8":"#ef4444"}40;border-radius:20px;padding:5px 14px;font-size:13px;font-weight:700;color:${concO.diff<0?"#22c55e":concO.diff===0?"#38bdf8":"#ef4444"}">
+            ${concO.diff<0?"🚀 "+Math.abs(concO.diff)+"d adiantado":concO.diff===0?"🎯 No prazo!":"⚠️ "+concO.diff+"d atraso"}
+          </span>
+        </div>`:""}`}
+  </div>
+  <hr class="divisor"><div class="sec" style="margin-bottom:12px">ETAPAS DA OBRA</div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px">
+    ${[{v:and,l:"Em andamento",c:"#f59e0b"},{v:pend,l:"Pendentes",c:"#6366f1"},{v:conc,l:"Concluídas",c:"#22c55e"},{v:atras,l:"Atrasadas",c:atras?"#ef4444":"#22c55e"}].map(k=>`<div class="card" style="padding:11px 13px"><div style="font-family:'Syne',sans-serif;font-size:19px;font-weight:700;color:${k.c}">${k.v}</div><div style="color:#94a3b8;font-size:11px">${k.l}</div></div>`).join("")}
+  </div>
+  <div class="grid-1">
+  ${S.tarefas.length===0?`<div class="card" style="text-align:center;color:#475569;padding:30px">Nenhuma tarefa cadastrada.</div>`:S.tarefas.map(t=>{
+    const st=stT(t),dp=DD(t.ini,t.fim),pr=progT(t);
+    const cor=t.status==="Concluída"?"#22c55e":st.l==="Atrasada"?"#ef4444":pr>0?"#f59e0b":"#6366f1";
+    const dr=t.fim?DD(hj,t.fim):null,corDr=dr===null?null:dr<0?"#ef4444":dr<=3?"#f59e0b":"#22c55e";
+    const temTol=t.tol&&t.tol>0,conc2=calcConc(t);
+    let concHtml="";
+    if(t.status==="Concluída"&&conc2){
+      const ad=conc2.diff<0,pt2=conc2.diff===0;
+      const corR=pt2?"#38bdf8":ad?"#22c55e":"#ef4444";
+      concHtml=`<div style="background:${corR}15;border:1px solid ${corR}33;border-radius:8px;padding:10px 12px;margin-top:10px">
+        <div style="color:#64748b;font-size:10px;font-weight:600;margin-bottom:6px">📊 CONCLUSÃO</div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="color:#64748b;font-size:11px">Data real</span><span style="color:#e2e8f0;font-size:12px;font-weight:700">${FD(t.conclusao)}</span></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="color:#64748b;font-size:11px">Dias previstos</span><span style="color:#6366f1;font-size:12px;font-weight:700">${conc2.diasPrevistos}d</span></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="color:#64748b;font-size:11px">Dias reais</span><span style="color:#f59e0b;font-size:12px;font-weight:700">${conc2.diasReais}d</span></div>
+        <span style="display:inline-flex;align-items:center;gap:5px;background:${corR}20;border:1px solid ${corR}40;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;color:${corR}">${pt2?"🎯 No prazo!":ad?"🚀 "+Math.abs(conc2.diff)+"d adiantado":"⚠️ "+conc2.diff+"d atraso"}</span>
+      </div>`;
+    }
+    return`<div class="card" style="border-left:4px solid ${cor};border-radius:0 12px 12px 0;padding:14px 16px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:10px">
+        <div><div style="color:#e2e8f0;font-weight:700;font-size:13px;margin-bottom:3px">${t.titulo}</div><div style="color:#64748b;font-size:11px">👷 ${t.responsavel||"—"}</div></div>
+        <div style="display:flex;gap:5px;flex-shrink:0">${bh(t.prioridade||"Média")}<span class="badge" style="background:${st.c}22;color:${st.c};border:1px solid ${st.c}44">${st.l}</span></div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;align-items:center">
+        <div class="chip">📅 ${FD(t.ini)}</div>
+        <span style="color:#475569;font-size:11px">→</span>
+        <div class="chip">🏁 ${FD(t.fim)}</div>
+        ${dp!==null?`<div class="chip">⏱ ${dp}d</div>`:""}
+        ${dr!==null&&t.status!=="Concluída"?`<span class="badge" style="background:${corDr}18;color:${corDr};border:1px solid ${corDr}30">${dr>=0?dr+"d restantes":Math.abs(dr)+"d atraso"}</span>`:""}
+        ${temTol?`<span class="tol-tag">+${t.tol}d tol.</span>`:""}
+      </div>
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:${concHtml?"0":"10px"}">
+        <div class="pt" style="flex:1;margin:0">${pbHtml(pr,cor,7)}</div>
+        <span style="color:${cor};font-size:11px;font-weight:700;min-width:28px">${pr}%</span>
+      </div>
+      ${concHtml}
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;border-top:1px solid #1e293b;padding-top:10px;margin-top:10px">
+        <select class="ssel" onchange="mudaSt(${t.id},this.value)">${["Pendente","Em andamento","Concluída"].map(s=>`<option${t.status===s?" selected":""}>${s}</option>`).join("")}</select>
+        <button class="btn btn-edit btn-sm" onclick="om('editDatas',{id:${t.id}})">✏️ Datas</button>
+        <button class="btn btn-tol btn-sm" onclick="om('tol',{id:${t.id}})">⏳ Tolerância</button>
+        ${t.status==="Concluída"?`<button class="btn btn-sm" style="background:#22c55e20;color:#22c55e;border:1px solid #22c55e40" onclick="om('conclusao',{id:${t.id}})">📅 Conclusão</button>`:""}
+        <button class="btn btn-danger btn-sm" style="margin-left:auto" onclick="delTar(${t.id})">✕</button>
+      </div>
+    </div>`;}).join("")}
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════
+// APORTES
+// ═══════════════════════════════════════════════════
+function pgAp(){
+  const meta=S.orcamentoTotal,tot=totGeral(),tPrev=totPrevSocios();
+  const falta=Math.max(0,meta-tot),pctMeta=meta>0?Math.min(100,Math.round((tot/meta)*100)):0;
+  const atingiu=tot>=meta,corMeta=atingiu?"#22c55e":pctMeta>=80?"#f59e0b":"#38bdf8";
+  return`
+  <div class="row-hdr"><div class="page-title">Aportes</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-edit btn-sm" style="font-size:12px;padding:7px 14px" onclick="om('socio')">👤 Novo Sócio</button>
+      <button class="btn btn-primary" onclick="om('lanc')">💰 Lançar Aporte</button>
+    </div>
+  </div>
+  <div class="meta-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+      <div><div style="color:#94a3b8;font-size:10px;font-weight:600;letter-spacing:.5px;margin-bottom:5px">🎯 META DE CAPTAÇÃO</div>
+        ${S.editMeta?`<div style="display:flex;align-items:center;gap:8px"><span style="color:#f59e0b;font-size:16px;font-weight:700">R$</span><input type="number" value="${S.novoMeta}" oninput="S.novoMeta=this.value" onkeydown="if(event.key==='Enter')svMeta()" style="background:#0f172a;border:2px solid #f59e0b;border-radius:8px;padding:8px 12px;color:#f59e0b;font-size:20px;font-weight:700;width:180px;outline:none;margin:0"></div>`
+        :`<div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:#f59e0b">R$ ${R(meta)}</div>`}
+        <div style="margin-top:5px"><span class="sync-tag">🔗 = Orçamento Previsto</span></div>
+      </div>
+      <div style="display:flex;gap:6px">${S.editMeta?`<button class="btn btn-primary btn-sm" onclick="svMeta()">✔</button><button class="btn btn-ghost btn-sm" onclick="S.editMeta=false;render()">✕</button>`:`<button class="btn btn-edit btn-sm" onclick="S.editMeta=true;S.novoMeta=S.orcamentoTotal;render()">✏️ Editar</button>`}</div>
+    </div>
+    <div class="pt-fat"><div style="width:${pctMeta}%;height:100%;border-radius:8px;background:linear-gradient(90deg,${corMeta},${corMeta}cc);transition:width .3s"></div></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;flex-wrap:wrap;gap:6px">
+      <div style="display:flex;gap:16px;flex-wrap:wrap">
+        <div><div style="color:${corMeta};font-family:'Syne',sans-serif;font-size:15px;font-weight:700">R$ ${R(tot)}</div><div style="color:#475569;font-size:10px">aportado</div></div>
+        <div><div style="color:#6366f1;font-family:'Syne',sans-serif;font-size:15px;font-weight:700">R$ ${R(tPrev)}</div><div style="color:#475569;font-size:10px">previsto</div></div>
+        <div><div style="color:${atingiu?"#22c55e":"#ef4444"};font-family:'Syne',sans-serif;font-size:15px;font-weight:700">${atingiu?"✅ Meta!":"R$ "+R(falta)}</div><div style="color:#475569;font-size:10px">${atingiu?"atingida":"faltam"}</div></div>
+      </div>
+      <div style="background:${corMeta}20;border:1px solid ${corMeta}44;border-radius:20px;padding:4px 12px"><span style="color:${corMeta};font-family:'Syne',sans-serif;font-size:16px;font-weight:800">${pctMeta}%</span></div>
+    </div>
+  </div>
+  <div class="sec" style="margin-bottom:10px">SÓCIOS</div>
+  ${S.socios.length===0?`<div class="card" style="text-align:center;color:#475569;padding:20px">Nenhum sócio cadastrado.</div>`:""}
+  ${S.socios.map((sc,idx)=>{
+    const cor=CORES[idx%CORES.length];
+    const lans=S.lancamentos.filter(l=>(l.socio_id||l.socioId)===sc.id);
+    const lancado=lans.reduce((a,l)=>a+(l.valor||0),0);
+    const faltaSc=Math.max(0,(sc.previsao||0)-lancado);
+    const pctSc=(sc.previsao||0)>0?Math.min(100,Math.round((lancado/(sc.previsao||1))*100)):0;
+    const pctMSc=meta>0?Math.min(100,Math.round((lancado/meta)*100)):0;
+    const concluiu=lancado>=(sc.previsao||0)&&(sc.previsao||0)>0;
+    return`<div class="socio-card" style="border-left:4px solid ${cor}">
+      <div style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="avatar" style="background:${cor}22;color:${cor}">${(sc.nome||"?").split(" ").map(n=>n[0]).slice(0,2).join("")}</div>
+          <div><div style="color:#e2e8f0;font-weight:700;font-size:14px">${sc.nome}</div>
+            <div style="display:flex;gap:8px;margin-top:3px;flex-wrap:wrap">
+              <span style="color:#475569;font-size:11px">Previsão: <strong style="color:${cor}">R$ ${R(sc.previsao)}</strong></span>
+              <span style="color:#475569;font-size:11px">Aportado: <strong style="color:${concluiu?"#22c55e":"#f59e0b"}">R$ ${R(lancado)}</strong></span>
+              ${!concluiu?`<span style="color:#475569;font-size:11px">Falta: <strong style="color:#ef4444">R$ ${R(faltaSc)}</strong></span>`:`<span style="display:inline-flex;background:#22c55e20;color:#22c55e;border:1px solid #22c55e40;border-radius:20px;padding:1px 8px;font-size:11px;font-weight:700">✅ Completo</span>`}
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          <button class="btn btn-edit btn-sm" onclick="om('editSocio',{id:${sc.id}})">✏️ Editar</button>
+          <button class="btn btn-green btn-sm" onclick="om('lancSocio',{id:${sc.id}})">💰 Lançar</button>
+          <button class="btn btn-danger btn-sm" onclick="delSocio(${sc.id})">✕</button>
+        </div>
+      </div>
+      <div style="padding:0 16px 12px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:#475569;font-size:10px">REALIZADO vs PREVISÃO</span><span style="color:${cor};font-size:11px;font-weight:700">${pctSc}%</span></div>
+        <div style="background:#0f172a;border-radius:20px;height:10px;overflow:hidden;position:relative">
+          <div style="position:absolute;left:0;width:${meta>0?Math.min(100,Math.round(((sc.previsao||0)/meta)*100)):0}%;height:100%;background:${cor}25;border-radius:20px"></div>
+          <div style="position:absolute;left:0;width:${pctMSc}%;height:100%;background:${cor};border-radius:20px"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:3px"><span style="color:#475569;font-size:10px">${pctMSc}% da meta</span><span style="color:#475569;font-size:10px">${lans.length} lançamento(s)</span></div>
+        ${lans.length>0?`<div style="margin-top:10px;border-top:1px solid #1e293b;padding-top:8px">
+          <div class="sec" style="margin-bottom:6px">LANÇAMENTOS</div>
+          ${lans.map(l=>`<div class="lanc-row"><div><div style="color:#cbd5e1;font-size:12px">${l.descricao||"Aporte"}</div><div style="color:#475569;font-size:10px">${FD(l.data)}</div></div>
+          <div style="display:flex;align-items:center;gap:8px"><span style="color:#22c55e;font-weight:700;font-size:13px">R$ ${R(l.valor)}</span><button class="btn btn-danger btn-sm" onclick="delLanc(${l.id})">✕</button></div></div>`).join("")}
+        </div>`:""}
+      </div>
+    </div>`;}).join("")}`;
+}
+
+// ═══════════════════════════════════════════════════
+// MODAIS
+// ═══════════════════════════════════════════════════
+function renderModal(){
+  const el=document.getElementById("modal");
+  if(!S.modal){el.style.display="none";return;}
+  el.style.display="flex";
+  const M=S.md||{};let h="";
+
+  if(S.modal==="novoEmp"){
+    h=`<div class="mbox"><div class="mhdr"><span class="mtitle">🔨 Novo Empreiteiro</span><button class="xbtn" onclick="cm()">✕</button></div>
+      <div class="info-box">Cadastre o empreiteiro e o valor total da empreitada. Os pagamentos são lançados separadamente.</div>
+      <label class="field-label">Nome do empreiteiro</label><input type="text" id="eNome" placeholder="Ex: João Mestre de Obras">
+      <label class="field-label">Especialidade</label><input type="text" id="eEsp" placeholder="Ex: Mestre de obras / Estrutura">
+      <label class="field-label">Telefone</label><input type="text" id="eTel" placeholder="Ex: (11) 99999-0000">
+      <label class="field-label">💰 Valor total da empreitada (R$)</label><input type="number" id="eVal" placeholder="Ex: 200000">
+      <label class="field-label">Descrição do serviço</label><input type="text" id="eDesc" placeholder="Ex: Empreitada geral da obra">
+      <label class="field-label">Status</label><select id="eSt"><option>Pendente</option><option>Em andamento</option><option>Concluída</option></select>
+      <div style="display:flex;gap:8px"><button class="btn btn-primary" style="flex:1" onclick="svEmp()">✔ Cadastrar</button><button class="btn btn-ghost" style="flex:1" onclick="cm()">Cancelar</button></div>
+    </div>`;
+  } else if(S.modal==="editEmp"){
+    const e=S.empreiteiros.find(x=>x.id===M.id)||{};
+    h=`<div class="mbox"><div class="mhdr"><span class="mtitle">✏️ Editar Empreiteiro</span><button class="xbtn" onclick="cm()">✕</button></div>
+      <label class="field-label">Nome</label><input type="text" id="eeNome" value="${e.nome||""}">
+      <label class="field-label">Especialidade</label><input type="text" id="eeEsp" value="${e.especialidade||""}">
+      <label class="field-label">Telefone</label><input type="text" id="eeTel" value="${e.telefone||""}">
+      <label class="field-label">💰 Valor da empreitada (R$)</label><input type="number" id="eeVal" value="${e.valor_empreitada||0}">
+      <label class="field-label">Descrição</label><input type="text" id="eeDesc" value="${e.descricao||""}">
+      <label class="field-label">Status</label><select id="eeSt">${["Pendente","Em andamento","Concluída"].map(s=>`<option${e.status===s?" selected":""}>${s}</option>`).join("")}</select>
+      <div style="display:flex;gap:8px"><button class="btn btn-primary" style="flex:1" onclick="svEditEmp()">✔ Salvar</button><button class="btn btn-ghost" style="flex:1" onclick="cm()">Cancelar</button></div>
+    </div>`;
+  } else if(S.modal==="novoPag"){
+    const e=S.empreiteiros.find(x=>x.id===M.id)||{};
+    const pago=(e.pagamentos||[]).reduce((a,p)=>a+(p.valor||0),0);
+    const dev=Math.max(0,(e.valor_empreitada||0)-pago);
+    h=`<div class="mbox"><div class="mhdr"><span class="mtitle">💵 Lançar Pagamento</span><button class="xbtn" onclick="cm()">✕</button></div>
+      <div style="background:#0f172a;border-radius:8px;padding:10px 12px;margin-bottom:14px">
+        <div style="color:#e2e8f0;font-size:14px;font-weight:700;margin-bottom:8px">${e.nome||""}</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap">
+          <div><div style="color:#475569;font-size:10px">EMPREITADA</div><div style="color:#6366f1;font-size:13px;font-weight:700">R$ ${R(e.valor_empreitada)}</div></div>
+          <div><div style="color:#475569;font-size:10px">JÁ PAGO</div><div style="color:#22c55e;font-size:13px;font-weight:700">R$ ${R(pago)}</div></div>
+          <div><div style="color:#475569;font-size:10px">DEVEDOR</div><div style="color:#ef4444;font-size:13px;font-weight:700">R$ ${R(dev)}</div></div>
+        </div>
+      </div>
+      <label class="field-label">Tipo de pagamento</label>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">
+        ${["Adiantamento","Vale","Parcela","Acerto final"].map(t=>`<button class="btn btn-ghost btn-sm" onclick="document.getElementById('pDesc').value='${t}'">${t}</button>`).join("")}
+      </div>
+      <label class="field-label">Descrição</label><input type="text" id="pDesc" placeholder="Ex: Vale do mês de junho">
+      <label class="field-label">💰 Valor (R$)</label><input type="number" id="pVal" placeholder="Ex: 10000">
+      <label class="field-label">📅 Data</label><input type="date" id="pData" value="${HJ()}">
+      <div class="info-box">💡 O saldo devedor será atualizado automaticamente.</div>
+      <div style="display:flex;gap:8px"><button class="btn btn-primary" style="flex:1" onclick="svPag()">✔ Lançar</button><button class="btn btn-ghost" style="flex:1" onclick="cm()">Cancelar</button></div>
+    </div>`;
+  } else if(S.modal==="novoFunc"){
+    h=`<div class="mbox"><div class="mhdr"><span class="mtitle">👷 Novo Funcionário</span><button class="xbtn" onclick="cm()">✕</button></div>
+      <label class="field-label">Nome</label><input type="text" id="fNome">
+      <label class="field-label">Função</label><input type="text" id="fFuncao">
+      <label class="field-label">Equipe</label><input type="text" id="fEquipe">
+      <label class="field-label">Status</label><select id="fSt"><option>Ativo</option><option>Inativo</option></select>
+      <div style="display:flex;gap:8px"><button class="btn btn-primary" style="flex:1" onclick="svFunc()">Salvar</button><button class="btn btn-ghost" style="flex:1" onclick="cm()">Cancelar</button></div>
+    </div>`;
+  } else if(S.modal==="mat"){
+    h=`<div class="mbox"><div class="mhdr"><span class="mtitle">Novo Material</span><button class="xbtn" onclick="cm()">✕</button></div>
+      <label class="field-label">Nome</label><input type="text" id="mNome">
+      <label class="field-label">Unidade</label><input type="text" id="mUnid" value="saco">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <div><label class="field-label">Quantidade</label><input type="number" id="mQtd" value="0"></div>
+        <div><label class="field-label">Mínimo</label><input type="number" id="mMin" value="0"></div>
+        <div><label class="field-label">Custo (R$)</label><input type="number" id="mCusto" value="0"></div>
+      </div>
+      <div style="display:flex;gap:8px"><button class="btn btn-primary" style="flex:1" onclick="svMat()">Salvar</button><button class="btn btn-ghost" style="flex:1" onclick="cm()">Cancelar</button></div>
+    </div>`;
+  } else if(S.modal==="cat"){
+    h=`<div class="mbox"><div class="mhdr"><span class="mtitle">Nova Etapa</span><button class="xbtn" onclick="cm()">✕</button></div>
+      <label class="field-label">Nome</label><input type="text" id="cNome">
+      <label class="field-label">Ícone</label><input type="text" id="cIcone" value="🏗">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><label class="field-label">Valor (R$)</label><input type="number" id="cVal" value="0"></div>
+        <div><label class="field-label">% do total</label><input type="number" id="cPct" placeholder="Ex:10" oninput="document.getElementById('cVal').value=Math.round((Number(this.value)/100)*S.orcamentoTotal)"></div>
+      </div>
+      <div style="display:flex;gap:8px"><button class="btn btn-primary" style="flex:1" onclick="svCat()">Salvar</button><button class="btn btn-ghost" style="flex:1" onclick="cm()">Cancelar</button></div>
+    </div>`;
+  } else if(S.modal==="gasto"){
+    h=`<div class="mbox"><div class="mhdr"><span class="mtitle">Lançar Gasto — ${M.catNome||""}</span><button class="xbtn" onclick="cm()">✕</button></div>
+      <label class="field-label">Descrição</label><input type="text" id="gDesc">
+      <label class="field-label">Valor (R$)</label><input type="number" id="gVal">
+      <label class="field-label">Data</label><input type="date" id="gData" value="${HJ()}">
+      <div style="display:flex;gap:8px"><button class="btn btn-primary" style="flex:1" onclick="svGasto()">Salvar</button><button class="btn btn-ghost" style="flex:1" onclick="cm()">Cancelar</button></div>
+    </div>`;
+  } else if(S.modal==="tar"){
+    h=`<div class="mbox"><div class="mhdr"><span class="mtitle">Nova Tarefa</span><button class="xbtn" onclick="cm()">✕</button></div>
+      <label class="field-label">Título</label><input type="text" id="tTit" placeholder="Ex: Concretagem do 1º pavimento">
+      <label class="field-label">Responsável</label>
+      <select id="tResp" onchange="document.getElementById('tRespTexto').style.display=this.value==='outro'?'block':'none'">
+        <option value="">— Selecione —</option>
+        ${S.empreiteiros.map(e=>`<option value="${e.nome}">${e.nome}</option>`).join("")}
+        ${S.funcionarios.map(f=>`<option value="${f.nome}">${f.nome}</option>`).join("")}
+        <option value="outro">Outro...</option>
+      </select>
+      <input type="text" id="tRespTexto" placeholder="Nome do responsável" style="display:none">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><label class="field-label">📅 Início</label><input type="date" id="tIni"></div>
+        <div><label class="field-label">🏁 Fim previsto</label><input type="date" id="tFim"></div>
+      </div>
+      <label class="field-label">Prioridade</label><select id="tPrio"><option>Alta</option><option selected>Média</option><option>Baixa</option></select>
+      <div style="display:flex;gap:8px"><button class="btn btn-primary" style="flex:1" onclick="svTar()">Salvar</button><button class="btn btn-ghost" style="flex:1" onclick="cm()">Cancelar</button></div>
+    </div>`;
+  } else if(S.modal==="editDatas"){
+    const t=S.tarefas.find(x=>x.id===M.id)||{};
+    h=`<div class="mbox"><div class="mhdr"><span class="mtitle">✏️ Alterar Datas</span><button class="xbtn" onclick="cm()">✕</button></div>
+      <div style="background:#0f172a;border-radius:8px;padding:9px 11px;margin-bottom:12px"><div style="color:#e2e8f0;font-size:13px;font-weight:600">${t.titulo||""}</div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><label class="field-label">📅 Início</label><input type="date" id="edIni" value="${t.ini||""}"></div>
+        <div><label class="field-label">🏁 Fim</label><input type="date" id="edFim" value="${t.fim||""}"></div>
+      </div>
+      <div style="display:flex;gap:8px"><button class="btn btn-primary" style="flex:1" onclick="svEditDatas()">✔ Salvar</button><button class="btn btn-ghost" style="flex:1" onclick="cm()">Cancelar</button></div>
+    </div>`;
+  } else if(S.modal==="tol"){
+    const t=S.tarefas.find(x=>x.id===M.id)||{};
+    h=`<div class="mbox"><div class="mhdr"><span class="mtitle">⏳ Tolerância</span><button class="xbtn" onclick="cm()">✕</button></div>
+      <div style="background:#0f172a;border-radius:8px;padding:9px 11px;margin-bottom:12px">
+        <div style="color:#e2e8f0;font-size:13px;font-weight:600;margin-bottom:6px">${t.titulo||""}</div>
+        <div class="chip">🏁 Fim atual <strong style="color:#e2e8f0;margin-left:3px">${FD(t.fim)}</strong></div>
+      </div>
+      <label class="field-label">Dias a adicionar</label><input type="number" id="tolDias" min="1" placeholder="Ex: 5">
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:-4px;margin-bottom:12px">
+        ${[3,5,7,10,15,30].map(n=>`<button class="btn btn-ghost btn-sm" onclick="document.getElementById('tolDias').value=${n}">+${n}d</button>`).join("")}
+      </div>
+      <div style="display:flex;gap:8px"><button class="btn btn-primary" style="flex:1" onclick="svTol()">✔ Aplicar</button><button class="btn btn-ghost" style="flex:1" onclick="cm()">Cancelar</button></div>
+    </div>`;
+  } else if(S.modal==="conclusao"){
+    const t=S.tarefas.find(x=>x.id===M.id)||{};
+    h=`<div class="mbox"><div class="mhdr"><span class="mtitle">📅 Registrar Conclusão</span><button class="xbtn" onclick="cm()">✕</button></div>
+      <div style="background:#0f172a;border-radius:8px;padding:10px 12px;margin-bottom:14px">
+        <div style="color:#e2e8f0;font-size:13px;font-weight:600;margin-bottom:8px">${t.titulo||""}</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap">
+          <div><div style="color:#475569;font-size:10px">INÍCIO</div><div style="color:#94a3b8;font-size:12px;font-weight:600">${FD(t.ini)}</div></div>
+          <div><div style="color:#475569;font-size:10px">FIM PREVISTO</div><div style="color:#94a3b8;font-size:12px;font-weight:600">${FD(t.fim)}</div></div>
+          <div><div style="color:#475569;font-size:10px">PRAZO</div><div style="color:#6366f1;font-size:12px;font-weight:700">${DD(t.ini,t.fim)!==null?DD(t.ini,t.fim)+"d":"—"}</div></div>
+        </div>
+      </div>
+      <label class="field-label">📅 Data real de conclusão</label>
+      <input type="date" id="concData" value="${t.conclusao||HJ()}">
+      <div class="info-box">💡 Se concluiu ontem mas lança hoje, coloque a data real.</div>
+      <div style="display:flex;gap:8px"><button class="btn btn-primary" style="flex:1" onclick="svConc()">✔ Salvar</button><button class="btn btn-ghost" style="flex:1" onclick="cm()">Cancelar</button></div>
+    </div>`;
+  } else if(S.modal==="editObra"){
+    const o=S.obra;
+    h=`<div class="mbox"><div class="mhdr"><span class="mtitle">⚙️ Configurar Obra</span><button class="xbtn" onclick="cm()">✕</button></div>
+      <label class="field-label">Nome da obra</label><input type="text" id="oNome" value="${o.nome||""}" placeholder="Ex: Construção Residencial">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><label class="field-label">📅 Data de início</label><input type="date" id="oIni" value="${o.ini||""}"></div>
+        <div><label class="field-label">🏁 Previsão de término</label><input type="date" id="oFim" value="${o.fim||""}"></div>
+      </div>
+      <div style="display:flex;gap:8px"><button class="btn btn-primary" style="flex:1" onclick="svObra()">✔ Salvar</button><button class="btn btn-ghost" style="flex:1" onclick="cm()">Cancelar</button></div>
+    </div>`;
+  } else if(S.modal==="concluirObra"){
+    const o=S.obra;
+    h=`<div class="mbox"><div class="mhdr"><span class="mtitle">🏁 Conclusão da Obra</span><button class="xbtn" onclick="cm()">✕</button></div>
+      <div style="background:#0f172a;border-radius:8px;padding:10px 12px;margin-bottom:14px">
+        <div style="color:#e2e8f0;font-size:14px;font-weight:700;margin-bottom:8px">${o.nome}</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap">
+          <div><div style="color:#475569;font-size:10px">INÍCIO</div><div style="color:#94a3b8;font-size:13px;font-weight:600">${FD(o.ini)}</div></div>
+          <div><div style="color:#475569;font-size:10px">PREVISTO</div><div style="color:#94a3b8;font-size:13px;font-weight:600">${FD(o.fim)}</div></div>
+        </div>
+      </div>
+      <label class="field-label">📅 Data real de conclusão</label>
+      <input type="date" id="oConcData" value="${o.conclusao||HJ()}">
+      <div style="display:flex;gap:8px"><button class="btn btn-primary" style="flex:1" onclick="svConcObra()">🏆 Salvar</button><button class="btn btn-ghost" style="flex:1" onclick="cm()">Cancelar</button></div>
+    </div>`;
+  } else if(S.modal==="socio"){
+    h=`<div class="mbox"><div class="mhdr"><span class="mtitle">👤 Novo Sócio</span><button class="xbtn" onclick="cm()">✕</button></div>
+      <div class="info-box">Cadastre o sócio e o valor que pretende aportar.</div>
+      <label class="field-label">Nome completo</label><input type="text" id="sNome" placeholder="Ex: Roberto Lima">
+      <label class="field-label">Valor previsto a aportar (R$)</label><input type="number" id="sPrev" placeholder="Ex: 250000">
+      <div style="display:flex;gap:8px"><button class="btn btn-primary" style="flex:1" onclick="svSocio()">✔ Cadastrar</button><button class="btn btn-ghost" style="flex:1" onclick="cm()">Cancelar</button></div>
+    </div>`;
+  } else if(S.modal==="lanc"){
+    h=`<div class="mbox"><div class="mhdr"><span class="mtitle">💰 Lançar Aporte</span><button class="xbtn" onclick="cm()">✕</button></div>
+      <label class="field-label">Sócio</label><select id="lSocio"><option value="">— Selecione —</option>${S.socios.map(sc=>`<option value="${sc.id}">${sc.nome}</option>`).join("")}</select>
+      <label class="field-label">Valor (R$)</label><input type="number" id="lVal" placeholder="Ex: 50000">
+      <label class="field-label">Data</label><input type="date" id="lData" value="${HJ()}">
+      <label class="field-label">Descrição</label><input type="text" id="lDesc" placeholder="Ex: 1ª parcela">
+      <div style="display:flex;gap:8px"><button class="btn btn-primary" style="flex:1" onclick="svLanc()">✔ Lançar</button><button class="btn btn-ghost" style="flex:1" onclick="cm()">Cancelar</button></div>
+    </div>`;
+  } else if(S.modal==="editSocio"){
+    const sc=S.socios.find(x=>x.id===M.id)||{};
+    h=`<div class="mbox"><div class="mhdr"><span class="mtitle">✏️ Editar Sócio</span><button class="xbtn" onclick="cm()">✕</button></div>
+      <div class="info-box">Altere o nome ou o valor previsto do sócio.</div>
+      <label class="field-label">Nome do sócio</label><input type="text" id="esNome" value="${sc.nome||""}">
+      <label class="field-label">Valor previsto a aportar (R$)</label><input type="number" id="esPrev" value="${sc.previsao||0}">
+      <div style="display:flex;gap:8px"><button class="btn btn-primary" style="flex:1" onclick="svEditSocio()">✔ Salvar</button><button class="btn btn-ghost" style="flex:1" onclick="cm()">Cancelar</button></div>
+    </div>`;
+  } else if(S.modal==="lancSocio"){
+    const sc=S.socios.find(x=>x.id===M.id)||{};
+    const lancado=totLanc(sc.id);
+    h=`<div class="mbox"><div class="mhdr"><span class="mtitle">💰 Lançar — ${sc.nome||""}</span><button class="xbtn" onclick="cm()">✕</button></div>
+      <div style="background:#0f172a;border-radius:8px;padding:10px 12px;margin-bottom:12px;display:flex;gap:14px;flex-wrap:wrap">
+        <div><div style="color:#475569;font-size:10px">PREVISÃO</div><div style="color:#6366f1;font-size:14px;font-weight:700">R$ ${R(sc.previsao)}</div></div>
+        <div><div style="color:#475569;font-size:10px">JÁ APORTADO</div><div style="color:#22c55e;font-size:14px;font-weight:700">R$ ${R(lancado)}</div></div>
+        <div><div style="color:#475569;font-size:10px">FALTAM</div><div style="color:#ef4444;font-size:14px;font-weight:700">R$ ${R(Math.max(0,(sc.previsao||0)-lancado))}</div></div>
+      </div>
+      <label class="field-label">Valor (R$)</label><input type="number" id="lsVal" placeholder="Ex: 50000">
+      <label class="field-label">Data</label><input type="date" id="lsData" value="${HJ()}">
+      <label class="field-label">Descrição</label><input type="text" id="lsDesc" placeholder="Ex: 2ª parcela">
+      <div style="display:flex;gap:8px"><button class="btn btn-primary" style="flex:1" onclick="svLancSocio(${sc.id})">✔ Lançar</button><button class="btn btn-ghost" style="flex:1" onclick="cm()">Cancelar</button></div>
+    </div>`;
+  }
+  el.innerHTML=h;
+}
+
+// ═══════════════════════════════════════════════════
+// ACTIONS — navegação e modais
+// ═══════════════════════════════════════════════════
+window.go=t=>{S.tab=t;render();};
+window.om=(m,md={})=>{S.modal=m;S.md={...md};render();};
+window.cm=()=>{S.modal=null;S.md={};render();};
+window.setSubTab=t=>{S.subTabEquipe=t;render();};
+window.tgCat=id=>{S.catAb=S.catAb===id?null:id;render();};
+window.syncPct=(id,tipo,val)=>{const meta=S.orcamentoTotal;if(tipo==='v'){const p=document.getElementById("pp"+id);if(p)p.value=meta>0?Math.round((Number(val)/meta)*100):0;}else{const v=document.getElementById("pv"+id);if(v)v.value=Math.round((Number(val)/100)*meta);}};
+window.svPrev=async id=>{
+  const v=Number(document.getElementById("pv"+id)?.value||0);
+  if(!v||v<=0)return;
+  await sb.from("categorias").update({previsto:v}).eq("id",id);
+  S.categorias=S.categorias.map(c=>c.id===id?{...c,previsto:v}:c);
+  S.editCat=null;render();
+};
+
+// ═══════════════════════════════════════════════════
+// ACTIONS — EMPREITEIROS
+// ═══════════════════════════════════════════════════
+window.svEmp=async()=>{
+  const n=document.getElementById("eNome")?.value?.trim();
+  const v=Number(document.getElementById("eVal")?.value||0);
+  if(!n)return alert("Informe o nome!");
+  if(!v)return alert("Informe o valor da empreitada!");
+  const {data,error}=await sb.from("empreiteiros").insert({
+    nome:n,especialidade:document.getElementById("eEsp")?.value||"",
+    telefone:document.getElementById("eTel")?.value||"",
+    valor_empreitada:v,descricao:document.getElementById("eDesc")?.value||"",
+    status:document.getElementById("eSt")?.value||"Pendente"
+  }).select().single();
+  if(error)return alert("Erro ao cadastrar empreiteiro: "+error.message);
+  S.empreiteiros=[...S.empreiteiros,{...data,pagamentos:[]}];
+  S.modal=null;S.md={};render();
+};
+window.svEditEmp=async()=>{
+  const id=S.md.id;
+  const {error}=await sb.from("empreiteiros").update({
+    nome:document.getElementById("eeNome")?.value,
+    especialidade:document.getElementById("eeEsp")?.value||"",
+    telefone:document.getElementById("eeTel")?.value||"",
+    valor_empreitada:Number(document.getElementById("eeVal")?.value||0),
+    descricao:document.getElementById("eeDesc")?.value||"",
+    status:document.getElementById("eeSt")?.value
+  }).eq("id",id);
+  if(error)return alert("Erro: "+error.message);
+  S.empreiteiros=S.empreiteiros.map(e=>e.id!==id?e:{...e,
+    nome:document.getElementById("eeNome")?.value,
+    especialidade:document.getElementById("eeEsp")?.value||"",
+    telefone:document.getElementById("eeTel")?.value||"",
+    valor_empreitada:Number(document.getElementById("eeVal")?.value||0),
+    descricao:document.getElementById("eeDesc")?.value||"",
+    status:document.getElementById("eeSt")?.value
+  });
+  S.modal=null;S.md={};render();
+};
+window.svPag=async()=>{
+  const v=Number(document.getElementById("pVal")?.value||0);
+  if(!v)return alert("Informe o valor do pagamento!");
+  const {data,error}=await sb.from("pagamentos_empreiteiros").insert({
+    empreiteiro_id:S.md.id,valor:v,
+    data:document.getElementById("pData")?.value||HJ(),
+    descricao:document.getElementById("pDesc")?.value||"Pagamento"
+  }).select().single();
+  if(error)return alert("Erro ao lançar pagamento: "+error.message);
+  S.empreiteiros=S.empreiteiros.map(e=>e.id!==S.md.id?e:{...e,pagamentos:[...e.pagamentos,data]});
+  S.modal=null;S.md={};render();
+};
+window.delPag=async(empId,pagId)=>{
+  await sb.from("pagamentos_empreiteiros").delete().eq("id",pagId);
+  S.empreiteiros=S.empreiteiros.map(e=>e.id!==empId?e:{...e,pagamentos:e.pagamentos.filter(p=>p.id!==pagId)});
+  render();
+};
+window.delEmp=async id=>{
+  if(!confirm("Remover empreiteiro e todos os pagamentos?"))return;
+  await sb.from("empreiteiros").delete().eq("id",id);
+  S.empreiteiros=S.empreiteiros.filter(e=>e.id!==id);render();
+};
+window.svFunc=async()=>{
+  const n=document.getElementById("fNome")?.value?.trim();if(!n)return;
+  const {data,error}=await sb.from("funcionarios").insert({nome:n,funcao:document.getElementById("fFuncao")?.value||"",equipe:document.getElementById("fEquipe")?.value||"",status:document.getElementById("fSt")?.value||"Ativo"}).select().single();
+  if(error)return alert("Erro: "+error.message);
+  S.funcionarios=[...S.funcionarios,data];S.modal=null;S.md={};render();
+};
+window.delFunc=async id=>{
+  await sb.from("funcionarios").delete().eq("id",id);
+  S.funcionarios=S.funcionarios.filter(f=>f.id!==id);render();
+};
+
+// ═══════════════════════════════════════════════════
+// ACTIONS — ESTOQUE
+// ═══════════════════════════════════════════════════
+window.svMat=async()=>{
+  const n=document.getElementById("mNome")?.value?.trim();if(!n)return;
+  const {data,error}=await sb.from("materiais").insert({nome:n,unidade:document.getElementById("mUnid")?.value||"un",quantidade:Number(document.getElementById("mQtd")?.value||0),minimo:Number(document.getElementById("mMin")?.value||0),custo:Number(document.getElementById("mCusto")?.value||0)}).select().single();
+  if(error)return alert("Erro: "+error.message);
+  S.materiais=[...S.materiais,data];S.modal=null;S.md={};render();
+};
+window.delMat=async id=>{
+  await sb.from("materiais").delete().eq("id",id);
+  S.materiais=S.materiais.filter(m=>m.id!==id);render();
+};
+
+// ═══════════════════════════════════════════════════
+// ACTIONS — ORÇAMENTO
+// ═══════════════════════════════════════════════════
+window.svMeta=async()=>{
+  const v=Number(S.novoMeta);if(!v||v<=0)return;
+  S.orcamentoTotal=v;S.editMeta=false;
+  await salvarConfig();render();
+};
+window.svCat=async()=>{
+  const n=document.getElementById("cNome")?.value?.trim();if(!n)return;
+  const {data,error}=await sb.from("categorias").insert({nome:n,icone:document.getElementById("cIcone")?.value||"🏗",previsto:Number(document.getElementById("cVal")?.value||0)}).select().single();
+  if(error)return alert("Erro: "+error.message);
+  S.categorias=[...S.categorias,{...data,gastos:[]}];S.modal=null;S.md={};render();
+};
+window.delCat=async id=>{
+  if(!confirm("Remover etapa e todos os gastos?"))return;
+  await sb.from("categorias").delete().eq("id",id);
+  S.categorias=S.categorias.filter(c=>c.id!==id);
+  if(S.catAb===id)S.catAb=null;render();
+};
+window.svGasto=async()=>{
+  const v=Number(document.getElementById("gVal")?.value||0);if(!v)return alert("Informe o valor!");
+  const {data,error}=await sb.from("gastos").insert({categoria_id:S.md.catId,descricao:document.getElementById("gDesc")?.value||"Sem descrição",valor:v,data:document.getElementById("gData")?.value||null}).select().single();
+  if(error)return alert("Erro: "+error.message);
+  S.categorias=S.categorias.map(c=>c.id===S.md.catId?{...c,gastos:[...c.gastos,data]}:c);S.modal=null;S.md={};render();
+};
+window.delGasto=async(catId,gId)=>{
+  await sb.from("gastos").delete().eq("id",gId);
+  S.categorias=S.categorias.map(c=>c.id===catId?{...c,gastos:c.gastos.filter(g=>g.id!==gId)}:c);render();
+};
+
+// ═══════════════════════════════════════════════════
+// ACTIONS — CRONOGRAMA
+// ═══════════════════════════════════════════════════
+window.mudaStObra=async status=>{
+  S.obra={...S.obra,status};
+  if(status==="Concluída")setTimeout(()=>{S.modal="concluirObra";render();},60);
+  else{S.obra={...S.obra,conclusao:null};await salvarConfig();render();}
+};
+window.svObra=async()=>{
+  S.obra={...S.obra,nome:document.getElementById("oNome")?.value?.trim()||"Minha Obra",ini:document.getElementById("oIni")?.value||"",fim:document.getElementById("oFim")?.value||""};
+  await salvarConfig();S.modal=null;S.md={};render();
+};
+window.svConcObra=async()=>{
+  const data=document.getElementById("oConcData")?.value;if(!data)return;
+  S.obra={...S.obra,conclusao:data,status:"Concluída"};
+  await salvarConfig();S.modal=null;S.md={};render();
+};
+window.mudaSt=async(id,status)=>{
+  S.tarefas=S.tarefas.map(t=>t.id===id?{...t,status}:t);
+  if(status==="Concluída")setTimeout(()=>{S.modal="conclusao";S.md={id};render();},80);
+  else{await sb.from("tarefas").update({status}).eq("id",id);render();}
+};
+window.svConc=async()=>{
+  const data=document.getElementById("concData")?.value;if(!data)return;
+  await sb.from("tarefas").update({status:"Concluída",conclusao:data}).eq("id",S.md.id);
+  S.tarefas=S.tarefas.map(t=>t.id===S.md.id?{...t,status:"Concluída",conclusao:data}:t);
+  S.modal=null;S.md={};render();
+};
+window.svTar=async()=>{
+  const tit=document.getElementById("tTit")?.value?.trim();if(!tit)return alert("Informe o título!");
+  const selVal=document.getElementById("tResp")?.value;
+  const resp=selVal==="outro"?(document.getElementById("tRespTexto")?.value||""):selVal;
+  const fim=document.getElementById("tFim")?.value||"";
+  const {data,error}=await sb.from("tarefas").insert({titulo:tit,responsavel:resp,ini:document.getElementById("tIni")?.value||null,fim:fim||null,fim_orig:fim||null,tolerancia:0,status:"Pendente",prioridade:document.getElementById("tPrio")?.value||"Média",conclusao:null}).select().single();
+  if(error)return alert("Erro: "+error.message);
+  S.tarefas=[...S.tarefas,{...data,ini:data.ini||"",fim:data.fim||"",fimOrig:data.fim_orig||data.fim||"",tol:0,conclusao:null}];
+  S.modal=null;S.md={};render();
+};
+window.svEditDatas=async()=>{
+  const ini=document.getElementById("edIni")?.value,fim=document.getElementById("edFim")?.value;
+  await sb.from("tarefas").update({ini:ini||null,fim:fim||null}).eq("id",S.md.id);
+  S.tarefas=S.tarefas.map(t=>t.id!==S.md.id?t:{...t,ini:ini||t.ini,fim:fim||t.fim});S.modal=null;S.md={};render();
+};
+window.svTol=async()=>{
+  const d=Number(document.getElementById("tolDias")?.value||0);if(!d||d<=0)return;
+  const t=S.tarefas.find(x=>x.id===S.md.id);if(!t)return;
+  const novoFim=addD(t.fim,d);const novoTol=(t.tol||0)+d;
+  await sb.from("tarefas").update({fim:novoFim,fim_orig:t.fimOrig||t.fim,tolerancia:novoTol}).eq("id",S.md.id);
+  S.tarefas=S.tarefas.map(x=>x.id===S.md.id?{...x,fim:novoFim,fimOrig:x.fimOrig||x.fim,tol:novoTol}:x);
+  S.modal=null;S.md={};render();
+};
+window.delTar=async id=>{
+  await sb.from("tarefas").delete().eq("id",id);
+  S.tarefas=S.tarefas.filter(t=>t.id!==id);render();
+};
+
+// ═══════════════════════════════════════════════════
+// ACTIONS — APORTES
+// ═══════════════════════════════════════════════════
+window.svSocio=async()=>{
+  const n=document.getElementById("sNome")?.value?.trim();
+  const p=Number(document.getElementById("sPrev")?.value||0);
+  if(!n)return alert("Informe o nome!");
+  if(!p)return alert("Informe o valor previsto!");
+  const {data,error}=await sb.from("socios").insert({nome:n,previsao:p}).select().single();
+  if(error)return alert("Erro ao salvar sócio: "+error.message);
+  S.socios=[...S.socios,data];
+  S.modal=null;S.md={};render();
+};
+window.svEditSocio=async()=>{
+  const n=document.getElementById("esNome")?.value?.trim();
+  const p=Number(document.getElementById("esPrev")?.value||0);
+  if(!n)return alert("Informe o nome!");
+  if(!p)return alert("Informe o valor previsto!");
+  const {error}=await sb.from("socios").update({nome:n,previsao:p}).eq("id",S.md.id);
+  if(error)return alert("Erro ao salvar: "+error.message);
+  S.socios=S.socios.map(sc=>sc.id===S.md.id?{...sc,nome:n,previsao:p}:sc);
+  S.modal=null;S.md={};render();
+};
+window.delSocio=async id=>{
+  if(!confirm("Remover sócio e todos os lançamentos?"))return;
+  await sb.from("socios").delete().eq("id",id);
+  S.socios=S.socios.filter(s=>s.id!==id);
+  S.lancamentos=S.lancamentos.filter(l=>l.socio_id!==id&&l.socioId!==id);render();
+};
+window.svLanc=async()=>{
+  const sid=Number(document.getElementById("lSocio")?.value);
+  const v=Number(document.getElementById("lVal")?.value||0);
+  if(!sid)return alert("Selecione o sócio!");
+  if(!v)return alert("Informe o valor!");
+  const {data,error}=await sb.from("lancamentos").insert({socio_id:sid,valor:v,data:document.getElementById("lData")?.value||HJ(),descricao:document.getElementById("lDesc")?.value||"Aporte"}).select().single();
+  if(error)return alert("Erro ao lançar aporte: "+error.message);
+  S.lancamentos=[...S.lancamentos,data];
+  S.modal=null;S.md={};render();
+};
+window.svLancSocio=async sid=>{
+  const v=Number(document.getElementById("lsVal")?.value||0);
+  if(!v)return alert("Informe o valor!");
+  const {data,error}=await sb.from("lancamentos").insert({socio_id:sid,valor:v,data:document.getElementById("lsData")?.value||HJ(),descricao:document.getElementById("lsDesc")?.value||"Aporte"}).select().single();
+  if(error)return alert("Erro ao lançar: "+error.message);
+  S.lancamentos=[...S.lancamentos,data];
+  S.modal=null;S.md={};render();
+};
+window.delLanc=async id=>{
+  await sb.from("lancamentos").delete().eq("id",id);
+  S.lancamentos=S.lancamentos.filter(l=>l.id!==id);render();
+};
+
+// ═══════════════════════════════════════════════════
+// INICIAR
+// ═══════════════════════════════════════════════════
+carregarTudo();
+</script>
+</body>
+</html>
